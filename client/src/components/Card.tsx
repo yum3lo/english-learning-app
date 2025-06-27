@@ -30,6 +30,19 @@ const Card = ({
   children,
   className = ""
 }: CardProps) => {
+  // mapping hover colors to predefined classes to ensure Tailwind includes them
+  const getHoverClass = (hoverColor: string) => {
+    const hoverMap: Record<string, string> = {
+      'bg-coral': 'hover:bg-coral',
+      'bg-bordo': 'hover:bg-bordo', 
+      'bg-green': 'hover:bg-green',
+      'bg-citron': 'hover:bg-citron',
+      'bg-beige': 'hover:bg-beige',
+      'bg-red': 'hover:bg-red'
+    };
+    return hoverMap[hoverColor] || 'hover:bg-gray-500';
+  };
+  
   // if children provided, render as a flexible container
   if (children) {
     return (
@@ -54,7 +67,7 @@ const Card = ({
       {linkTo && buttonText && (
         <Link
           to={linkTo}
-          className={`inline-block ${buttonBgColor} ${buttonTextColor} rounded-lg px-4 py-2 hover:${buttonHoverColor}`}
+          className={`inline-block ${buttonBgColor} ${buttonTextColor} rounded-lg px-4 py-2 transition-colors duration-200 ${getHoverClass(buttonHoverColor || '')}`}
         >
           {buttonText}
         </Link>
