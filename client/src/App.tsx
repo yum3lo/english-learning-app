@@ -10,6 +10,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import { AuthProvider } from "./contexts/AuthContext";
 
 const AppContent = () => {  
   const router = createBrowserRouter(
@@ -29,7 +30,9 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <AppContent />
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
