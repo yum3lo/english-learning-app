@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { ACTIVITY_TYPES } from '../constants/categories';
 
 export interface IUserProgress extends Document {
   _id: string;
@@ -7,12 +8,10 @@ export interface IUserProgress extends Document {
   activityType: 'read' | 'watched' | 'vocabulary_click' | 'flashcard_review';
   completedAt?: Date;
   progressPercentage: number;
-  timeSpent: number; // in seconds
   
   flashcardResults?: {
     totalAttempts: number;
     correctAnswers: number;
-    averageResponseTime: number; // in seconds
   };
   
   aiScore?: number; // 0-100
@@ -35,7 +34,7 @@ const userProgressSchema = new Schema<IUserProgress>({
   },
   activityType: {
     type: String,
-    enum: ['read', 'watched', 'vocabulary_click', 'flashcard_review'],
+    enum: ACTIVITY_TYPES,
     required: true
   },
   completedAt: {
@@ -47,15 +46,9 @@ const userProgressSchema = new Schema<IUserProgress>({
     max: 100,
     default: 0
   },
-  timeSpent: {
-    type: Number,
-    min: 0,
-    default: 0
-  },
   flashcardResults: {
     totalAttempts: { type: Number, default: 0 },
-    correctAnswers: { type: Number, default: 0 },
-    averageResponseTime: { type: Number, default: 0 }
+    correctAnswers: { type: Number, default: 0 }
   },
   aiScore: {
     type: Number,

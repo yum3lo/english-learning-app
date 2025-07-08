@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { CEFR_LEVELS } from '../constants/categories';
 
 export interface IVocabularyWord extends Document {
   _id: string;
@@ -63,7 +64,7 @@ const vocabularyWordSchema = new Schema<IVocabularyWord>({
   },
   cefrLevel: {
     type: String,
-    enum: ['B2', 'C1', 'C2'],
+    enum: CEFR_LEVELS,
     required: true
   },
   partOfSpeech: {

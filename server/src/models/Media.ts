@@ -1,4 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
+import { CATEGORIES, CEFR_LEVELS, MEDIA_TYPES } from '../constants/categories';
 
 export interface IMedia extends Document {
   _id: string;
@@ -26,7 +27,7 @@ const mediaSchema = new Schema<IMedia>({
   },
   type: {
     type: String,
-    enum: ['video', 'article'],
+    enum: MEDIA_TYPES,
     required: true
   },
   url: {
@@ -58,12 +59,12 @@ const mediaSchema = new Schema<IMedia>({
   },
   cefrLevel: {
     type: String,
-    enum: ['B2', 'C1', 'C2'],
+    enum: CEFR_LEVELS,
     required: true
   },
   categories: [{
     type: String,
-    enum: ['Politics', 'Geography', 'Fauna', 'Flora', 'History', 'Cinema', 'Literature', 'Sports', 'Technology', 'Science', 'Art', 'Music', 'Food', 'Travel', 'Health', 'Culture'],
+    enum: CATEGORIES,
   }],
   vocabularyWords: [{
     type: Schema.Types.ObjectId,
