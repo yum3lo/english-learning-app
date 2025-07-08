@@ -1,0 +1,86 @@
+import mongoose, { Document, Schema } from 'mongoose';
+
+export interface IMedia extends Document {
+  _id: string;
+  title: string;
+  type: 'video' | 'article';
+  url: string;
+  thumbnailUrl?: string;
+  source: string;
+  description?: string;
+  duration?: number;
+  transcription?: string;
+  cefrLevel: 'B2' | 'C1' | 'C2';
+  categories: string[];
+  vocabularyWords: mongoose.Types.ObjectId[];
+  grammarTopics: string[];
+  createdAt: Date;
+}
+
+const mediaSchema = new Schema<IMedia>({
+  title: {
+    type: String,
+    required: [true, 'Title is required'],
+    trim: true,
+    maxlength: [200, 'Title cannot exceed 200 characters']
+  },
+  type: {
+    type: String,
+    enum: ['video', 'article'],
+    required: true
+  },
+  url: {
+    type: String,
+    required: [true, 'URL is required'],
+    trim: true
+  },
+  thumbnailUrl: {
+    type: String,
+    trim: true
+  },
+  source: {
+    type: String,
+    required: [true, 'Source is required'],
+    trim: true
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: [1000, 'Description cannot exceed 1000 characters']
+  },
+  duration: {
+    type: Number,
+    min: 0
+  },
+  transcription: {
+    type: String,
+    trim: true
+  },
+  cefrLevel: {
+    type: String,
+    enum: ['B2', 'C1', 'C2'],
+    required: true
+  },
+  categories: [{
+    type: String,
+    enum: ['Politics', 'Geography', 'Fauna', 'Flora', 'History', 'Cinema', 'Literature', 'Sports', 'Technology', 'Science', 'Art', 'Music', 'Food', 'Travel', 'Health', 'Culture'],
+  }],
+  vocabularyWords: [{
+    type: Schema.Types.ObjectId,
+    ref: 'VocabularyWord'
+  }],
+  grammarTopics: [{
+    type: String,
+    trim: true
+  }]
+}, {
+  timestamps: true
+});
+
+// indexes for better query performance
+mediaSchema.index({ cefrLevel: 1, categories: 1 });
+mediaSchema.index({ type: 1, cefrLevel: 1 });
+mediaSchema.index({ source: 1 });
+mediaSchema.index({ createdAt: -1 });
+
+export default mongoose.model<IMedia>('Media', mediaSchema);
