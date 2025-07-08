@@ -1,6 +1,14 @@
 import { useAuth } from '../contexts/AuthContext';
-import { FaLocationCrosshairs, FaChartLine, FaMicrophone, FaBook } from "react-icons/fa6";
-import Card from './Card';
+import { BookOpen, Headphones, BookMarked, TrendingUp } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Link } from 'react-router-dom';
+import { Button } from './ui/button';
 
 const HomeCards = () => {
   const { isAuthenticated } = useAuth();
@@ -9,54 +17,74 @@ const HomeCards = () => {
     <section className="container-xl lg:container m-auto px-4 mb-12">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 rounded-lg">
         
-        <Card
-          icon={<FaLocationCrosshairs size={20} />}
-          title="Interactive Lessons"
-          description="Start your English learning journey with AI-powered interactive lessons tailored to your level"
-          linkTo={isAuthenticated ? "/lessons" : "/login"}
-          buttonText={isAuthenticated ? "Start Learning" : "Sign In to Learn"}
-          bgColor="bg-coral"
-          textColor="text-beige"
-          buttonBgColor="bg-bordo"
-          buttonTextColor="text-beige"
-          buttonHoverColor="bg-red"
-        />
+        <Card className='bg-muted'>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BookOpen size={20} className='mr-2'/>
+              Reading Practice
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            Improve your reading comprehension with AI-curated articles tailored to your CEFR level
+          </CardContent>
+          <CardFooter>
+            <Link to={isAuthenticated ? "/reading" : "/login"}>
+              <Button variant="secondary">{isAuthenticated ? "Start Reading" : "Sign In to Read"}</Button>
+            </Link>
+          </CardFooter>
+        </Card>
 
-        <Card
-          icon={<FaChartLine size={20} />}
-          title="Track Progress"
-          description="Monitor your learning progress with detailed analytics and personalized feedback"
-          linkTo={isAuthenticated ? "/progress" : "/login"}
-          buttonText={isAuthenticated ? "View Progress" : "Sign In to Track"}
-          bgColor="bg-green"
-          buttonBgColor="bg-citron"
-          buttonTextColor="text-bordo"
-          buttonHoverColor="bg-beige"
-        />
+        <Card className='bg-primary/50 border-primary-50'>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Headphones size={20} className='mr-2'/>
+              Listening Practice
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            Enhance your listening skills with curated videos and interactive transcriptions
+          </CardContent>
+          <CardFooter>
+            <Link to={isAuthenticated ? "/listening" : "/login"}>
+              <Button>{isAuthenticated ? "Start Listening" : "Sign In to Listen"}</Button>
+            </Link>
+          </CardFooter>
+        </Card>
 
-        <Card
-          icon={<FaMicrophone size={20} />}
-          title="Speaking Practice"
-          description="Improve your pronunciation with AI-powered speech recognition and real-time feedback"
-          linkTo={isAuthenticated ? "/speaking" : "/login"}
-          buttonText={isAuthenticated ? "Practice Speaking" : "Sign In to Practice"}
-          bgColor="bg-citron"
-          buttonBgColor="bg-beige"
-          buttonTextColor="text-bordo"
-          buttonHoverColor="bg-green"
-        />
+        <Card className='bg-primary/50 border-primary-50'>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <BookMarked size={20} className='mr-2'/>
+              Vocabulary Builder
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            Expand your vocabulary with smart flashcards and contextual learning exercises
+          </CardContent>
+          <CardFooter>
+            <Link to={isAuthenticated ? "/vocabulary" : "/login"}>
+              <Button >{isAuthenticated ? "Build Vocabulary" : "Sign In to Build"}</Button>
+            </Link>
+          </CardFooter>
+        </Card>
 
-        <Card
-          icon={<FaBook size={20} />}
-          title="Vocabulary Builder"
-          description="Expand your vocabulary with smart flashcards and contextual learning exercises"
-          linkTo={isAuthenticated ? "/vocabulary" : "/login"}
-          buttonText={isAuthenticated ? "Build Vocabulary" : "Sign In to Build"}
-          bgColor="bg-bordo"
-          textColor="text-beige"
-          buttonBgColor="bg-coral"
-          buttonHoverColor="bg-red"
-        />
+        <Card className='bg-muted'>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <TrendingUp size={20} className='mr-2'/>
+              Track Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            Monitor your learning progress with detailed analytics and personalized feedback
+          </CardContent>
+          <CardFooter>
+            <Link to={isAuthenticated ? "/profile" : "/login"}>
+              <Button variant="secondary">{isAuthenticated ? "View Progress" : "Sign In to Track"}</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+
       </div>
     </section>
   );

@@ -15,7 +15,7 @@ const Preloader = () => {
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 preloader-pulse">
-        <div className="text-center text-bordo">
+        <div className="text-center text-foreground">
           <div className="mb-4 flex justify-center">
             <img
               src={logo}

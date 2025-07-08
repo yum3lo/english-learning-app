@@ -1,16 +1,25 @@
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext";
 import logo from "../assets/logo.png"
-import { FaCircleUser, FaRightFromBracket } from "react-icons/fa6";
+import { Button } from "./ui/button";
+import { User, LogOut } from "lucide-react";
 
 const Navbar = () => {
   const { isAuthenticated, logout } = useAuth();
 
   const linkClass = ({ isActive }: { isActive: boolean }) => {
-    const baseClasses = "rounded-md px-3 py-2 transition-colors duration-100 hover:bg-green";
+    const baseClasses = "rounded-md px-3 py-2 transition-colors duration-100 hover:bg-muted";
     
     return isActive
-    ? `${baseClasses} border-2 border-bordo`
+    ? `${baseClasses} border-2 border-foreground`
+    : `${baseClasses}`;
+  }
+
+  const userIconClass = ({ isActive }: { isActive: boolean }) => {
+    const baseClasses = "rounded-md p-2 transition-colors duration-100 hover:bg-muted";
+    
+    return isActive
+    ? `${baseClasses} border-2 border-foreground`
     : `${baseClasses}`;
   }
 
@@ -20,7 +29,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="shadow-md fixed w-full bg-beige z-10">
+    <nav className="shadow-md fixed w-full bg-background z-10">
       <div className="container flex items-center justify-between mx-auto p-4">
         <div className="flex items-center">
           <NavLink className="flex items-center" to="/">
@@ -43,43 +52,36 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>              
               <NavLink
-                to="/profile"
-                className={linkClass}
-              >
-                <FaCircleUser className="inline-block mr-2" />
-                Profile
-              </NavLink>
-              {/* TODO: Add more routes later
-              <NavLink
                 to="/vocabulary"
                 className={linkClass}
               >
                 Vocabulary
               </NavLink>
-              <NavLink
-                to="/grammar"
-                className={linkClass}
-              >
-                Grammar
-              </NavLink>
+
               <NavLink
                 to="/reading"
                 className={linkClass}
               >
                 Reading
               </NavLink>
+
               <NavLink
                 to="/listening"
                 className={linkClass}
               >
                 Listening
               </NavLink>
-              */}
-              <div className="px-3 py-2 flex">
-                <button onClick={handleLogout}>
-                  <FaRightFromBracket className="hover:text-coral"/>
-                </button>
-              </div>
+
+              <NavLink
+                to="/profile"
+                className={userIconClass}
+              >
+                <User />
+              </NavLink>
+
+              <Button onClick={handleLogout} variant={"icon"} size={"icon"}>
+                <LogOut className="!w-6 !h-6" />
+              </Button>
             </>
           ):(
             <>

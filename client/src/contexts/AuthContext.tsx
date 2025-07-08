@@ -5,6 +5,30 @@ interface User {
   id: string;
   email: string;
   name: string;
+  dateOfBirth?: string;
+  cefrLevel: 'B2' | 'C1' | 'C2';
+  fieldsOfInterest: string[];
+  aiDataConsent: boolean;
+  learningProgress: {
+    cefrScores: {
+      B2: number;
+      C1: number;
+      C2: number;
+    };
+    wordsLearned: number;
+    articlesRead: number;
+    videosWatched: number;
+  };
+  createdAt: string;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface RegisterCredentials {
+  name: string;
   createdAt: string;
 }
 
@@ -17,6 +41,10 @@ interface RegisterCredentials {
   name: string;
   email: string;
   password: string;
+  confirmPassword: string;
+  dateOfBirth?: string;
+  fieldsOfInterest: string[];
+  aiDataConsent: boolean;
 }
 
 interface AuthContextType {

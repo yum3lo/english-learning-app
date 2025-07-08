@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { FaXmark } from 'react-icons/fa6';
+import { X } from 'lucide-react';
 
 const WelcomePopup = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -47,7 +47,7 @@ const WelcomePopup = () => {
     return null;
   }
   return (
-    <div className="fixed inset-0 bg-bordo bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-foreground/50 flex items-center justify-center z-50 p-4">
       <audio 
         ref={audioRef}
         preload="auto"
@@ -57,26 +57,26 @@ const WelcomePopup = () => {
         Your browser does not support the audio element.
       </audio>
       
-      <div className="bg-beige rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-bounce-in">
+      <div className="bg-background rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-bounce-in">
         <button 
           onClick={handleClosePopup}
-          className="absolute top-4 right-4 text-red hover:text-bordo text-2xl"
+          className="absolute top-4 right-4 text-red hover:text-foreground text-2xl"
           aria-label="Close"
         >
-          <FaXmark />
+          <X />
         </button>
           <div className="text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="mb-4">
             {popupTitle}
           </h2>
-          <p className="text-coral mb-4 leading-relaxed">
+          <p className="text-primary mb-4 leading-relaxed">
             {popupMessage1}
           </p>
-          <p className="text-coral mb-4 leading-relaxed">  
+          <p className="text-primary mb-4 leading-relaxed">  
             {popupMessage2}
           </p>
-          <p className="text-coral mb-4 leading-relaxed">
+          <p className="text-primary mb-4 leading-relaxed">
             {popupMessage3}
           </p>
           <div className="text-4xl mb-4">💖</div>
@@ -85,7 +85,7 @@ const WelcomePopup = () => {
           </p>
           <button 
             onClick={handleClosePopup}
-            className="bg-gradient-to-r from-coral to-bordo text-beige px-8 py-3 rounded-full font-semibold hover:from-green hover:to-citron hover:text-bordo transition-all duration-200 transform hover:scale-105"
+            className="bg-gradient-to-r from-primary to-foreground text-background px-8 py-3 rounded-full font-semibold hover:from-muted hover:to-secondary hover:text-foreground transition-all duration-200 transform hover:scale-105"
           >
             Let's Start Learning! ✏️
           </button>

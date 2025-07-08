@@ -4,35 +4,69 @@ import { useAuth } from '../contexts/AuthContext';
 import tulips from '../assets/tulips.png';
 import ladybug from '../assets/ladybug.png';
 import flowers from '../assets/flowers.png';
-import Card from '../components/Card';
-import Input from '../components/Input';
-import Button from '../components/Button';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { CATEGORIES } from '@/constants/categories';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    dateOfBirth: undefined as Date | undefined,
+    fieldsOfInterest: [] as string[],
+    aiDataConsent: false,
+    createdAt: new Date().toISOString().split('T')[0]
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+    
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
         [name]: ''
       }));
     }
+  };
+
+  const handleInterestChange = (interest: string) => {
+    setFormData(prev => ({
+      ...prev,
+      fieldsOfInterest: prev.fieldsOfInterest.includes(interest)
+        ? prev.fieldsOfInterest.filter(item => item !== interest)
+        : [...prev.fieldsOfInterest, interest]
+    }));
   };
 
   const validateForm = () => {
@@ -58,8 +92,20 @@ const RegisterPage = () => {
     
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
+    } else    if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+    
+    if (formData.dateOfBirth) {
+      const today = new Date();
+      const age = today.getFullYear() - formData.dateOfBirth.getFullYear();
+      if (age < 13) {
+        newErrors.dateOfBirth = 'You must be at least 13 years old';
+      }
+    }
+    
+    if (!formData.aiDataConsent) {
+      newErrors.aiDataConsent = 'You must consent to AI data usage to create an account';
     }
     
     setErrors(newErrors);
@@ -76,17 +122,35 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      const { confirmPassword, ...registrationData } = formData;
-      await register(registrationData);
+      // converting Date to string for API
+      const submitData = {
+        ...formData,
+        dateOfBirth: formData.dateOfBirth ? formData.dateOfBirth.toISOString().split('T')[0] : undefined
+      };
+      await register(submitData);
+      
+      toast({
+        title: "Account created successfully!",
+        description: "Welcome to English Learning App. You can now start your learning journey.",
+      });
+      
       navigate('/');
     } catch (error) {
-      setErrors({ general: 'Email address already in use.' });
+      const errorMessage = error instanceof Error ? error.message : 'Email address already in use.';
+      
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description: "Email address already in use.",
+      });
+      
+      setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);
     }
   };
   return (
-    <div className="min-h-screen flex items-center justify-center bg-green py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
       <img
         src={tulips}
         alt="Tulips"
@@ -106,89 +170,209 @@ const RegisterPage = () => {
       />
 
       <Card className="max-w-lg w-full">
-        <div>
-          <h2 className="mt-4 text-center">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">
             Create your account
-          </h2>
-          <p className="mt-2 text-center text-sm">
-            Or{' '}
-            <Link
-              to="/login"
-              className="font-medium text-coral hover:text-red"
-            >
-              sign in to your existing account
-            </Link>
-          </p>
-        </div>
+          </CardTitle>
+          <CardDescription>
+            <p className="text-sm text-muted-foreground">
+              Or{' '}
+              <Link
+                to="/login"
+                className="font-medium text-primary hover:text-destructive transition-colors"
+              >
+                sign in to your existing account
+              </Link>
+            </p>
+          </CardDescription>
+        </CardHeader>
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {errors.general && (
-            <div className="bg-red border border-red text-beige px-4 py-3 rounded">
-              {errors.general}
+        <CardContent>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter your full name"
+                  className={errors.name ? "border-destructive" : ""}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive mt-1">{errors.name}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="email">Email address</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email"
+                  className={errors.email ? "border-destructive" : ""}
+                />
+                {errors.email && (
+                  <p className="text-sm text-destructive mt-1">{errors.email}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Create a password"
+                  className={errors.password ? "border-destructive" : ""}
+                />
+                {errors.password && (
+                  <p className="text-sm text-destructive mt-1">{errors.password}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm your password"
+                  className={errors.confirmPassword ? "border-destructive" : ""}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive mt-1">{errors.confirmPassword}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label>Date of Birth</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !formData.dateOfBirth && "text-muted-foreground",
+                        errors.dateOfBirth && "border-destructive"
+                      )}
+                    >
+                      <CalendarIcon className="h-4 w-4" />
+                      {formData.dateOfBirth ? format(formData.dateOfBirth, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.dateOfBirth}
+                      onSelect={(date) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          dateOfBirth: date
+                        }));
+                        if (errors.dateOfBirth) {
+                          setErrors(prev => ({
+                            ...prev,
+                            dateOfBirth: ''
+                          }));
+                        }
+                      }}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      captionLayout='dropdown'
+                    />
+                  </PopoverContent>
+                </Popover>
+                {errors.dateOfBirth && (
+                  <p className="text-sm text-destructive mt-1">{errors.dateOfBirth}</p>
+                )}
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  Fields of Interest
+                </Label>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORIES.map((interest) => (
+                    <Badge
+                      key={interest}
+                      variant={formData.fieldsOfInterest.includes(interest) ? "default" : "outline"}
+                      className="cursor-pointer transition-all hover:scale-105"
+                      onClick={() => handleInterestChange(interest)}
+                    >
+                      {interest}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Click on the categories you're interested in
+                </p>
+                {errors.fieldsOfInterest && (
+                  <p className="mt-1 text-sm text-destructive">{errors.fieldsOfInterest}</p>
+                )}
+              </div>
+              
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="aiDataConsent"
+                  className={`mt-1 ${errors.aiDataConsent ? "border-destructive" : ""}`}
+                  checked={formData.aiDataConsent}
+                  onCheckedChange={(checked) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      aiDataConsent: !!checked
+                    }));
+                    if (errors.aiDataConsent) {
+                      setErrors(prev => ({
+                        ...prev,
+                        aiDataConsent: ''
+                      }));
+                    }
+                  }}
+                />
+                <div className="flex-1">
+                  <Label 
+                    htmlFor="aiDataConsent"
+                    className="text-sm font-normal cursor-pointer leading-relaxed"
+                  >
+                    I consent to AI using my data for the improvement of model accuracy and personalized learning experience <span className="text-destructive">*</span>
+                  </Label>
+                  {errors.aiDataConsent && (
+                    <Badge variant="destructive">{errors.aiDataConsent}</Badge>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
-          
-          <div className="space-y-4">
-            <Input
-              label="Full Name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              required
-              value={formData.name}
-              onChange={handleChange}
-              error={errors.name}
-              placeholder="Enter your full name"
-            />
-            
-            <Input
-              label="Email address"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
-              placeholder="Enter your email"
-            />
-            
-            <Input
-              label="Password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              placeholder="Create a password"
-            />
-            
-            <Input
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              error={errors.confirmPassword}
-              placeholder="Confirm your password"
-            />
-          </div>
 
-          <div>
             <Button
               type="submit"
-              isLoading={isLoading}
+              disabled={isLoading}
               className="w-full"
               size="lg"
             >
               {isLoading ? 'Creating account...' : 'Create account'}
             </Button>
-          </div>
-        </form>
+          </form>
+        </CardContent>
       </Card>
     </div>
   );
