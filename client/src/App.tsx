@@ -10,6 +10,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
+import ReadingPage from './pages/ReadingPage';
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -21,6 +22,7 @@ const AppContent = () => {
         <Route path="register" element={<RegisterPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="profile" element={<ProfilePage /> } />
+        <Route path="reading" element={<ReadingPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     )
