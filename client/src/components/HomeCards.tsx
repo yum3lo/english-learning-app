@@ -21,7 +21,7 @@ const HomeCards = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <BookOpen size={20} className='mr-2'/>
-              Reading Practice
+              <h3>Reading Practice</h3>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -38,7 +38,7 @@ const HomeCards = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Headphones size={20} className='mr-2'/>
-              Listening Practice
+              <h3>Listening Practice</h3>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -55,7 +55,7 @@ const HomeCards = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <BookMarked size={20} className='mr-2'/>
-              Vocabulary Builder
+              <h3>Vocabulary Builder</h3>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -72,7 +72,7 @@ const HomeCards = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <TrendingUp size={20} className='mr-2'/>
-              Track Progress
+              <h3>Track Progress</h3>
             </CardTitle>
           </CardHeader>
           <CardContent>

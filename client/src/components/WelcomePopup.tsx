@@ -65,7 +65,7 @@ const WelcomePopup = () => {
         >
           <X />
         </button>
-          <div className="text-center">
+        <div className="text-center">
           <div className="text-6xl mb-4">🎉</div>
           <h2 className="mb-4">
             {popupTitle}
@@ -80,7 +80,7 @@ const WelcomePopup = () => {
             {popupMessage3}
           </p>
           <div className="text-4xl mb-4">💖</div>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-primary mb-6">
             {birthdayWish}
           </p>
           <button 

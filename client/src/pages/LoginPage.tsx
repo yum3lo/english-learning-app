@@ -92,7 +92,7 @@ const LoginPage = () => {
             Sign in to your account
           </CardTitle>
           <CardDescription>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground">
               Or{' '}
               <Link
                 to="/register"

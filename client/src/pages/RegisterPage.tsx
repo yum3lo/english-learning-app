@@ -25,6 +25,7 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: '',
     dateOfBirth: undefined as Date | undefined,
+    cefrLevel: 'B2' as 'B2' | 'C1' | 'C2',
     fieldsOfInterest: [] as string[],
     aiDataConsent: false,
     createdAt: new Date().toISOString().split('T')[0]
@@ -141,7 +142,7 @@ const RegisterPage = () => {
       toast({
         variant: "destructive",
         title: "Registration failed",
-        description: "Email address already in use.",
+        description: errorMessage,
       });
       
       setErrors({ general: errorMessage });
@@ -175,7 +176,7 @@ const RegisterPage = () => {
             Create your account
           </CardTitle>
           <CardDescription>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-foreground">
               Or{' '}
               <Link
                 to="/login"
@@ -271,7 +272,7 @@ const RegisterPage = () => {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !formData.dateOfBirth && "text-muted-foreground",
+                        !formData.dateOfBirth && "text-foreground",
                         errors.dateOfBirth && "border-destructive"
                       )}
                     >
@@ -309,6 +310,32 @@ const RegisterPage = () => {
               
               <div>
                 <Label className="text-sm font-medium mb-3 block">
+                  English Level (CEFR)
+                </Label>
+                <div className="flex gap-2">
+                  {(['B2', 'C1', 'C2'] as const).map((level) => (
+                    <Badge
+                      key={level}
+                      variant={formData.cefrLevel === level ? "default" : "outline"}
+                      className="cursor-pointer transition-all hover:scale-105 px-4 py-2"
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          cefrLevel: level
+                        }));
+                      }}
+                    >
+                      {level}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-foreground mt-2">
+                  Select your current English proficiency level
+                </p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
                   Fields of Interest
                 </Label>
                 <div className="flex flex-wrap gap-2">
@@ -323,7 +350,7 @@ const RegisterPage = () => {
                     </Badge>
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-foreground mt-2">
                   Click on the categories you're interested in
                 </p>
                 {errors.fieldsOfInterest && (
@@ -357,7 +384,7 @@ const RegisterPage = () => {
                     I consent to AI using my data for the improvement of model accuracy and personalized learning experience <span className="text-destructive">*</span>
                   </Label>
                   {errors.aiDataConsent && (
-                    <Badge variant="destructive">{errors.aiDataConsent}</Badge>
+                    <p className="text-sm text-destructive mt-1">{errors.aiDataConsent}</p>
                   )}
                 </div>
               </div>

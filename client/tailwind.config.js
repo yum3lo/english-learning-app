@@ -82,21 +82,24 @@ export default {
           fontWeight: theme('fontWeight.bold'),
           '@screen sm': { fontSize: theme('fontSize.3xl') },
           '@screen md': { fontSize: theme('fontSize.4xl') },
-          fontFamily: theme('fontFamily.serif')
+          fontFamily: theme('fontFamily.serif'),
+					lineHeight: theme('lineHeight.normal')
         },
         'h2': {
           fontSize: theme('fontSize.xl'),
           fontWeight: theme('fontWeight.semibold'),
           '@screen sm': { fontSize: theme('fontSize.2xl') },
           '@screen md': { fontSize: theme('fontSize.3xl') },
-          fontFamily: theme('fontFamily.serif')
+          fontFamily: theme('fontFamily.serif'),
+					lineHeight: theme('lineHeight.normal')
         },
         'h3': {
           fontSize: theme('fontSize.lg'),
           fontWeight: theme('fontWeight.medium'),
           '@screen sm': { fontSize: theme('fontSize.xl') },
           '@screen md': { fontSize: theme('fontSize.2xl') },
-          fontFamily: theme('fontFamily.serif')
+          fontFamily: theme('fontFamily.serif'),
+					lineHeight: theme('lineHeight.normal')
         }
       });
     },
