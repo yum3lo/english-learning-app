@@ -1,0 +1,119 @@
+[
+  {
+    "_id": "1",
+    "title": "Climate Change: A Global Challenge",
+    "type": "article",
+    "url": "https://example.com/climate-change",
+    "source": "BBC News",
+    "description": "Understanding the impact of climate change on our planet and what we can do about it.",
+    "imageUrl": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/EF66/production/_133668216_71f246ad-60b0-4bd5-a2b7-db2017874915.png.webp",
+    "cefrLevel": "B2",
+    "categories": ["Geography", "Science", "Environment"],
+    "createdAt": "2024-01-15T10:30:00Z"
+  },
+  {
+    "_id": "2",
+    "title": "The Future of Artificial Intelligence",
+    "type": "article",
+    "url": "https://example.com/ai-future",
+    "source": "TechCrunch",
+    "description": "Exploring how AI will transform industries and society.",
+    "imageUrl": "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=225&fit=crop",
+    "cefrLevel": "C1",
+    "categories": ["Technology", "Science"],
+    "createdAt": "2024-01-20T14:15:00Z"
+  },
+  {
+    "_id": "3",
+    "title": "Healthy Eating Habits for Beginners",
+    "type": "article",
+    "url": "https://example.com/healthy-eating",
+    "source": "Health Magazine",
+    "description": "Simple tips to start eating healthier and feel better.",
+    "imageUrl": "https://static01.nyt.com/images/2025/06/17/well/28WELL-DIET-KEYS/28WELL-DIET-KEYS-superJumbo.jpg?quality=75&auto=webp",
+    "cefrLevel": "B2",
+    "categories": ["Health", "Food"],
+    "createdAt": "2024-01-25T09:00:00Z"
+  },
+  {
+    "_id": "4",
+    "title": "The History of Space Exploration",
+    "type": "article",
+    "url": "https://example.com/space-history",
+    "source": "National Geographic",
+    "description": "From the first satellite to Mars missions: a journey through space exploration.",
+    "imageUrl": "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&h=225&fit=crop",
+    "cefrLevel": "B2",
+    "categories": ["History", "Science"],
+    "createdAt": "2024-01-18T16:30:00Z"
+  },
+  {
+    "_id": "5",
+    "title": "Understanding Modern Art",
+    "type": "article",
+    "url": "https://example.com/modern-art",
+    "source": "Art Today",
+    "description": "A beginner's guide to appreciating contemporary art movements.",
+    "imageUrl": "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=225&fit=crop",
+    "cefrLevel": "C2",
+    "categories": ["Art", "Culture"],
+    "createdAt": "2024-01-22T11:45:00Z"
+  },
+  {
+    "_id": "6",
+    "title": "The Economic Impact of Tourism",
+    "type": "article",
+    "url": "https://example.com/tourism-economy",
+    "source": "Economic Times",
+    "description": "How tourism affects local and global economies.",
+    "cefrLevel": "C1",
+    "categories": ["Politics", "Travel"],
+    "createdAt": "2024-01-28T13:20:00Z"
+  },
+  {
+    "_id": "7",
+    "title": "Football World Cup Analysis",
+    "type": "article",
+    "url": "https://example.com/world-cup",
+    "source": "Sports Weekly",
+    "description": "Breaking down the tactics and performances from the latest World Cup.",
+    "imageUrl": "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=225&fit=crop",
+    "cefrLevel": "B2",
+    "categories": ["Sports", "Culture"],
+    "createdAt": "2024-01-30T15:00:00Z"
+  },
+  {
+    "_id": "8",
+    "title": "Classical Music in the Digital Age",
+    "type": "article",
+    "url": "https://example.com/classical-digital",
+    "source": "Music Today",
+    "description": "How streaming platforms are changing classical music consumption.",
+    "cefrLevel": "C1",
+    "categories": ["Music", "Technology"],
+    "createdAt": "2024-02-01T12:30:00Z"
+  },
+  {
+    "_id": "9",
+    "title": "Wildlife Conservation in Africa",
+    "type": "article",
+    "url": "https://example.com/wildlife-africa",
+    "source": "National Geographic",
+    "description": "Efforts to protect endangered species across African nations.",
+    "imageUrl": "https://images.unsplash.com/photo-1564760055775-d63b17a55c44?w=400&h=225&fit=crop",
+    "cefrLevel": "B2",
+    "categories": ["Fauna", "Geography"],
+    "createdAt": "2024-02-03T09:15:00Z"
+  },
+  {
+    "_id": "10",
+    "title": "The Golden Age of Cinema",
+    "type": "article",
+    "url": "https://example.com/golden-cinema",
+    "source": "Film Quarterly",
+    "description": "Exploring the masterpieces and innovations of classic Hollywood.",
+    "cefrLevel": "C2",
+    "categories": ["Cinema", "History"],
+    "createdAt": "2024-02-05T14:45:00Z"
+  }
+]
