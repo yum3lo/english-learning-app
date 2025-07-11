@@ -38,7 +38,7 @@ router.post('/register', [
       return;
     }
 
-    const { name, email, password } = req.body;
+    const { name, email, password, dateOfBirth, cefrLevel, fieldsOfInterest, aiDataConsent } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -52,7 +52,11 @@ router.post('/register', [
     const user = new User({
       name,
       email,
-      password
+      password,
+      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+      cefrLevel: cefrLevel || 'B2',
+      fieldsOfInterest: fieldsOfInterest || [],
+      aiDataConsent: aiDataConsent || false
     });
 
     await user.save();
@@ -67,6 +71,11 @@ router.post('/register', [
         id: user._id,
         name: user.name,
         email: user.email,
+        dateOfBirth: user.dateOfBirth,
+        cefrLevel: user.cefrLevel,
+        fieldsOfInterest: user.fieldsOfInterest,
+        aiDataConsent: user.aiDataConsent,
+        learningProgress: user.learningProgress,
         createdAt: user.createdAt
       }
     });
@@ -131,6 +140,11 @@ router.post('/login', [
         id: user._id,
         name: user.name,
         email: user.email,
+        dateOfBirth: user.dateOfBirth,
+        cefrLevel: user.cefrLevel,
+        fieldsOfInterest: user.fieldsOfInterest,
+        aiDataConsent: user.aiDataConsent,
+        learningProgress: user.learningProgress,
         createdAt: user.createdAt
       }
     });

@@ -29,22 +29,14 @@ interface LoginCredentials {
 
 interface RegisterCredentials {
   name: string;
-  createdAt: string;
-}
-
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-interface RegisterCredentials {
-  name: string;
   email: string;
   password: string;
   confirmPassword: string;
   dateOfBirth?: string;
+  cefrLevel: 'B2' | 'C1' | 'C2';
   fieldsOfInterest: string[];
   aiDataConsent: boolean;
+  createdAt: string;
 }
 
 interface AuthContextType {
