@@ -3,25 +3,22 @@ import { useAuth } from "../contexts/AuthContext";
 import logo from "../assets/logo.png"
 import { Button } from "./ui/button";
 import { User, LogOut } from "lucide-react";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 
 const Navbar = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
 
   const linkClass = ({ isActive }: { isActive: boolean }) => {
     const baseClasses = "rounded-md px-3 py-2 transition-colors duration-100 hover:bg-muted";
     
     return isActive
-    ? `${baseClasses} border-2 border-foreground`
+    ? `${baseClasses} bg-secondary`
     : `${baseClasses}`;
   }
 
-  const userIconClass = ({ isActive }: { isActive: boolean }) => {
-    const baseClasses = "rounded-md p-2 transition-colors duration-100 hover:bg-muted";
-    
-    return isActive
-    ? `${baseClasses} border-2 border-foreground`
-    : `${baseClasses}`;
-  }
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
 
   const handleLogout = () => {
     logout();
@@ -49,7 +46,7 @@ const Navbar = () => {
           >
             Home
           </NavLink>
-          {isAuthenticated ? (
+          {isAuthenticated && user ? (
             <>              
               <NavLink
                 to="/vocabulary"
@@ -74,12 +71,15 @@ const Navbar = () => {
 
               <NavLink
                 to="/profile"
-                className={userIconClass}
               >
-                <User />
+                <Avatar>
+                  <AvatarFallback>
+                    {user ? getInitials(user.name) : <User />}
+                  </AvatarFallback>
+                </Avatar>
               </NavLink>
 
-              <Button onClick={handleLogout} variant={"icon"} size={"icon"}>
+              <Button onClick={handleLogout} variant="none" size={"icon"}>
                 <LogOut className="!w-6 !h-6" />
               </Button>
             </>

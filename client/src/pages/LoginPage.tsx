@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +17,6 @@ const LoginPage = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,21 +62,9 @@ const LoginPage = () => {
     try {
       await login(formData);
       
-      toast({
-        title: "Welcome back!",
-        description: "You have successfully signed in to your account.",
-      });
-      
       navigate('/');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Wrong email address or password.';
-      
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: "Email or password is incorrect.",
-      });
-      
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);

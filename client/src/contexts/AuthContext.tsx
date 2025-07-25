@@ -1,3 +1,4 @@
+import { useToast } from '@/hooks/use-toast';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
@@ -9,16 +10,10 @@ interface User {
   cefrLevel: 'B2' | 'C1' | 'C2';
   fieldsOfInterest: string[];
   aiDataConsent: boolean;
-  learningProgress: {
-    cefrScores: {
-      B2: number;
-      C1: number;
-      C2: number;
-    };
-    wordsLearned: number;
-    articlesRead: number;
-    videosWatched: number;
-  };
+  points: number;
+  wordsLearned: number;
+  articlesRead: number;
+  videosWatched: number;
   createdAt: string;
 }
 
@@ -58,6 +53,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -102,9 +98,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('userData', JSON.stringify(data.user));
       
+      toast({
+        title: "Logged in successfully!",
+        description: "Welcome back to your profile.",
+      });
+
       setUser(data.user);
     } catch (error) {
       console.error('Login error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Invalid credentials. Please try again.';
+      
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: errorMessage,
+      });
+      
       throw error;
     } finally {
       setIsLoading(false);
@@ -132,9 +142,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('userData', JSON.stringify(data.user));
       
+      toast({
+        title: "Registered successfully!",
+        description: "Welcome to English Learning App. You can now start your learning journey.",
+      });
+
       setUser(data.user);
     } catch (error) {
       console.error('Registration error:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Email address already in use.';
+      
+      toast({
+        variant: "destructive",
+        title: "Registration failed",
+        description: errorMessage,
+      });
+      
       throw error;
     } finally {
       setIsLoading(false);
@@ -146,6 +170,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
       
+      toast({
+        title: "Logged out successfully!",
+        description: "You have been logged out of your account.",
+      });
+
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
@@ -157,6 +186,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
       localStorage.setItem('userData', JSON.stringify(updatedUser));
+      toast({
+        title: "Profile updated successfully!",
+        description: "Your profile information has been updated.",
+      });
     }
   };
 

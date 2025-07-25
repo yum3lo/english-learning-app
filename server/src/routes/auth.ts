@@ -75,7 +75,10 @@ router.post('/register', [
         cefrLevel: user.cefrLevel,
         fieldsOfInterest: user.fieldsOfInterest,
         aiDataConsent: user.aiDataConsent,
-        learningProgress: user.learningProgress,
+        points: user.points,
+        wordsLearned: user.wordsLearned,
+        articlesRead: user.articlesRead,
+        videosWatched: user.videosWatched,
         createdAt: user.createdAt
       }
     });
@@ -144,7 +147,10 @@ router.post('/login', [
         cefrLevel: user.cefrLevel,
         fieldsOfInterest: user.fieldsOfInterest,
         aiDataConsent: user.aiDataConsent,
-        learningProgress: user.learningProgress,
+        points: user.points,
+        wordsLearned: user.wordsLearned,
+        articlesRead: user.articlesRead,
+        videosWatched: user.videosWatched,
         createdAt: user.createdAt
       }
     });

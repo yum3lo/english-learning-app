@@ -11,16 +11,10 @@ export interface IUser extends Document {
   cefrLevel: 'B2' | 'C1' | 'C2';
   fieldsOfInterest: string[];
   aiDataConsent: boolean;
-  learningProgress: {
-    cefrScores: {
-      B2: number;
-      C1: number;
-      C2: number;
-    };
-    wordsLearned: number;
-    articlesRead: number;
-    videosWatched: number;
-  };
+  points: number;
+  wordsLearned: number;
+  articlesRead: number;
+  videosWatched: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -65,15 +59,21 @@ const userSchema = new Schema<IUser>({
     type: Boolean,
     default: false
   },
-  learningProgress: {
-    cefrScores: {
-      B2: { type: Number, default: 0 },
-      C1: { type: Number, default: 0 },
-      C2: { type: Number, default: 0 }
-    },
-    wordsLearned: { type: Number, default: 0 },
-    articlesRead: { type: Number, default: 0 },
-    videosWatched: { type: Number, default: 0 }
+  points: {
+    type: Number,
+    default: 0
+  },
+  wordsLearned: {
+    type: Number,
+    default: 0
+  },
+  articlesRead: {
+    type: Number,
+    default: 0
+  },
+  videosWatched: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

@@ -16,7 +16,6 @@ import { CalendarIcon } from 'lucide-react';
 import { CATEGORIES } from '@/constants/categories';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -35,7 +34,6 @@ const RegisterPage = () => {
   
   const { register } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -130,21 +128,9 @@ const RegisterPage = () => {
       };
       await register(submitData);
       
-      toast({
-        title: "Account created successfully!",
-        description: "Welcome to English Learning App. You can now start your learning journey.",
-      });
-      
       navigate('/');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Email address already in use.';
-      
-      toast({
-        variant: "destructive",
-        title: "Registration failed",
-        description: errorMessage,
-      });
-      
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       setErrors({ general: errorMessage });
     } finally {
       setIsLoading(false);
