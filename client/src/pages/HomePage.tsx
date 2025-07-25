@@ -8,10 +8,10 @@ const HomePage = () => {
     <>
       <Hero />
       <img
-          src={leaves}
-          alt="Leaves Image"
-          className="mx-auto m-4 h-16"
-        />
+        src={leaves}
+        alt="Leaves Image"
+        className="mx-auto m-4 h-16"
+      />
       <HomeCards />
       <WelcomePopup />
     </>
