@@ -9,13 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CATEGORIES } from '@/constants/categories';
+import { CATEGORIES, DURATIONS } from '@/constants/categories';
 
 interface FilterSearchProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
+  selectedDuration?: string;
+  setSelectedDuration?: (duration: string) => void;
   filteredCount: number;
   mediaType?: string;
   searchPlaceholder?: string;
@@ -26,6 +28,8 @@ const FilterSearch = ({
   setSearchTerm, 
   selectedCategory, 
   setSelectedCategory,
+  selectedDuration,
+  setSelectedDuration,
   filteredCount,
   mediaType = "items"
 }: FilterSearchProps) => {
@@ -71,15 +75,35 @@ const FilterSearch = ({
           </Select>
         </div>
 
+        {mediaType === "videos" && setSelectedDuration && (
+          <div>
+            <Label>Duration</Label>
+            <Select value={selectedDuration} onValueChange={setSelectedDuration}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Durations" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Durations</SelectItem>
+                {DURATIONS.map(duration => (
+                  <SelectItem key={duration} value={duration}>{duration}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="text-sm font-medium text-center">
           {`${filteredCount} ${mediaType} found`}
         </div>
 
-        {(searchTerm || selectedCategory !== 'all') && (
+        {(searchTerm || selectedCategory !== 'all' || (selectedDuration && selectedDuration !== 'all')) && (
           <Button
             onClick={() => {
               setSearchTerm('');
               setSelectedCategory('all');
+              if (setSelectedDuration) {
+                setSelectedDuration('all');
+              }
             }}
             className="w-full"
           >

@@ -19,6 +19,7 @@ interface MediaItem {
   imageUrl?: string;
   cefrLevel: 'B2' | 'C1' | 'C2';
   categories: string[];
+  duration?: string;
   createdAt: string;
 }
 
@@ -59,6 +60,11 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
             <div className='absolute top-2 left-2 bg-foreground text-background px-2 py-1 rounded text-xs font-semibold'>
               {item.cefrLevel}
             </div>
+            {item.duration && (
+              <div className='absolute bottom-2 right-2 bg-muted text-muted-foreground px-2 py-1 rounded text-xs'>
+                {item.duration}
+              </div>
+            )}
           </div>
           <CardHeader>
             <CardTitle>

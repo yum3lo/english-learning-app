@@ -11,6 +11,7 @@ import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import ReadingPage from './pages/ReadingPage';
+import ListeningPage from './pages/ListeningPage';
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -23,6 +24,7 @@ const AppContent = () => {
         <Route path="login" element={<LoginPage />} />
         <Route path="profile" element={<ProfilePage /> } />
         <Route path="reading" element={<ReadingPage />} />
+        <Route path="listening" element={<ListeningPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     )
