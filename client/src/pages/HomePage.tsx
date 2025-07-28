@@ -10,7 +10,7 @@ const HomePage = () => {
       <img
         src={leaves}
         alt="Leaves Image"
-        className="mx-auto m-4 h-16"
+        className="mx-auto m-4 h-auto w-full max-w-sm"
       />
       <HomeCards />
       <WelcomePopup />

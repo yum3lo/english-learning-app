@@ -20,7 +20,7 @@ const MainLayout = () => {
       <div className="h-[76px]">
         <Navbar />
       </div>
-      <main className="flex-grow">
+      <main className="flex-grow overflow-x-hidden">
         <Outlet />
       </main>
       <Footer />
