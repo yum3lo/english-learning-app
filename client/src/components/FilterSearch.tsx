@@ -31,37 +31,38 @@ const FilterSearch = ({
   selectedDuration,
   setSelectedDuration,
   filteredCount,
-  mediaType = "items"
+  mediaType = "items",
+  searchPlaceholder = "Search by title or description..."
 }: FilterSearchProps) => {
   return (
-    <div className="w-80 rounded-xl border bg-card text-card-foreground shadow p-6 mb-9 sticky top-[15%] self-start">
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-          <Search className="w-5 h-5" />
+    <div className="w-full lg:w-80 rounded-xl border bg-card text-card-foreground shadow p-4 lg:p-6">
+      <div className="mb-4 lg:mb-6">
+        <h3 className="text-lg lg:text-xl font-semibold mb-2 flex items-center gap-2">
+          <Search className="w-4 h-4 lg:w-5 lg:h-5" />
           Filter & Search
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs lg:text-sm text-muted-foreground">
           {`Find ${mediaType} that match your interests and current level`}
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 lg:space-y-4">
         <div>
-          <Label>{`Search ${mediaType}`}</Label>
+          <Label className="text-sm">{`Search ${mediaType}`}</Label>
           <div className="relative">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
             <Input
               type="text"
-              placeholder="Search by title or description..."
+              placeholder={searchPlaceholder}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8"
+              className="pl-8 text-sm placeholder:text-sm"
             />
           </div>
         </div>
 
         <div>
-          <Label>Category</Label>
+          <Label className="text-sm">Category</Label>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="All Categories" />
@@ -77,7 +78,7 @@ const FilterSearch = ({
 
         {mediaType === "videos" && setSelectedDuration && (
           <div>
-            <Label>Duration</Label>
+            <Label className="text-sm">Duration</Label>
             <Select value={selectedDuration} onValueChange={setSelectedDuration}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="All Durations" />
@@ -92,7 +93,7 @@ const FilterSearch = ({
           </div>
         )}
 
-        <div className="text-sm font-medium text-center">
+        <div className="text-xs lg:text-sm font-medium text-center p-2 bg-muted rounded-md">
           {`${filteredCount} ${mediaType} found`}
         </div>
 

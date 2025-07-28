@@ -163,7 +163,62 @@ const ProfilePage = () => {
       <div className="flex flex-col md:flex-row gap-6 mb-8">
         <Card className="flex-1">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            {/* mobile layout */}
+            <div className="flex md:hidden flex-col space-y-4">
+              <div className="flex items-center gap-4">
+                <Avatar className="w-16 h-16">
+                  <AvatarFallback className="text-lg font-semibold bg-primary text-primary-foreground">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  {isEditingName ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={editedName}
+                        onChange={(e) => setEditedName(e.target.value)}
+                        className="text-xl font-bold h-auto p-2"
+                        placeholder="Enter your name"
+                      />
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={handleSaveName}>
+                          <Save className="w-4 h-4" />
+                          Save
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleCancelEditName}>
+                          <X className="w-4 h-4" />
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-xl">{user.name}</CardTitle>
+                      <Button variant="none" size="sm" className='p-0' onClick={() => setIsEditingName(true)}>
+                        <Edit3 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  )}
+                  <CardDescription className="flex items-center gap-2 mt-1">
+                    <Mail className="w-4 h-4" />
+                    {user.email}
+                  </CardDescription>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div>
+                  <p className="text-sm text-muted-foreground">Member Since</p>
+                  <p className="text-sm font-medium flex items-center gap-2 mt-1">
+                    <Calendar className="w-4 h-4" />
+                    {formatDate(user.createdAt)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* desktop layout */}
+            <div className="hidden md:flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16">
                   <AvatarFallback className="text-lg font-semibold bg-primary text-primary-foreground">
@@ -204,6 +259,7 @@ const ProfilePage = () => {
                   </CardDescription>
                 </div>
               </div>
+              
               <div>
                 <p className="text-sm text-end">Member Since</p>
                 <p className="text-sm font-medium flex items-center gap-2 mt-1">
@@ -214,21 +270,19 @@ const ProfilePage = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm">Current Level</p>
+                <p className="text-sm text-muted-foreground">Current Level</p>
                 <Badge variant="secondary" className="mt-1">
                   {user.cefrLevel}
                 </Badge>
               </div>
               {user.dateOfBirth && (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm">Date of Birth</p>
-                    <p className="text-sm font-medium">
-                      {formatDate(user.dateOfBirth)}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Date of Birth</p>
+                  <p className="text-sm font-medium mt-1">
+                    {formatDate(user.dateOfBirth)}
+                  </p>
                 </div>
               )}
             </div>
@@ -375,7 +429,7 @@ const ProfilePage = () => {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex-1">
                 {user.fieldsOfInterest.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
@@ -389,8 +443,8 @@ const ProfilePage = () => {
                   <p className="text-muted-foreground">No interests selected yet.</p>
                 )}
               </div>
-              <div>
-                <Button variant="outline" size="sm" className='ml-2' onClick={() => setIsEditingInterests(true)}>
+              <div className="flex-shrink-0">
+                <Button variant="outline" size="sm" onClick={() => setIsEditingInterests(true)}>
                   <Edit3 className="w-4 h-4" />
                   Edit Interests
                 </Button>
@@ -400,10 +454,11 @@ const ProfilePage = () => {
         </CardContent>
       </Card>
 
-      <div className="flex justify-center">
+      <div className="flex justify-center mt-8">
         <Button 
           variant="destructive"
           size="lg"
+          className="w-full sm:w-auto"
           onClick={deleteAccount}
         >
           <Trash className="w-4 h-4" />

@@ -10,7 +10,7 @@ import FilterSearch from '@/components/FilterSearch';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import MediaLayout from '@/components/MediaLayout';
+import MediaLayout from '@/layouts/MediaLayout';
 
 const ReadingPage = () => {
   const { user } = useAuth();
