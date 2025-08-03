@@ -37,7 +37,7 @@ const FilterSearch = ({
   return (
     <div className="w-full lg:w-80 rounded-xl border bg-card text-card-foreground shadow p-4 lg:p-6">
       <div className="mb-4 lg:mb-6">
-        <h3 className="text-lg lg:text-xl font-semibold mb-2 flex items-center gap-2">
+        <h3 className="mb-2 flex items-center gap-2">
           <Search className="w-4 h-4 lg:w-5 lg:h-5" />
           Filter & Search
         </h3>

@@ -78,26 +78,26 @@ export default {
           '@screen md': { fontSize: theme('fontSize.base') },
         },
         'h1': {
-          fontSize: theme('fontSize.2xl'),
-          fontWeight: theme('fontWeight.bold'),
-          '@screen sm': { fontSize: theme('fontSize.3xl') },
-          '@screen md': { fontSize: theme('fontSize.4xl') },
-          fontFamily: theme('fontFamily.serif'),
-					lineHeight: theme('lineHeight.normal')
-        },
-        'h2': {
           fontSize: theme('fontSize.xl'),
-          fontWeight: theme('fontWeight.semibold'),
+          fontWeight: theme('fontWeight.bold'),
           '@screen sm': { fontSize: theme('fontSize.2xl') },
           '@screen md': { fontSize: theme('fontSize.3xl') },
           fontFamily: theme('fontFamily.serif'),
 					lineHeight: theme('lineHeight.normal')
         },
-        'h3': {
+        'h2': {
           fontSize: theme('fontSize.lg'),
-          fontWeight: theme('fontWeight.medium'),
+          fontWeight: theme('fontWeight.semibold'),
           '@screen sm': { fontSize: theme('fontSize.xl') },
           '@screen md': { fontSize: theme('fontSize.2xl') },
+          fontFamily: theme('fontFamily.serif'),
+					lineHeight: theme('lineHeight.normal')
+        },
+        'h3': {
+          fontSize: theme('fontSize.md'),
+          fontWeight: theme('fontWeight.medium'),
+          '@screen sm': { fontSize: theme('fontSize.lg') },
+          '@screen md': { fontSize: theme('fontSize.xl') },
           fontFamily: theme('fontFamily.serif'),
 					lineHeight: theme('lineHeight.normal')
         }

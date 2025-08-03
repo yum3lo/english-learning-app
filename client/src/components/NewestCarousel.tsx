@@ -31,8 +31,8 @@ const NewestCarousel = ({ title, items }: { title: string; items: MediaItem[] })
   return (
     <div className="mb-6 lg:mb-8">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="flex items-center gap-2 text-lg lg:text-xl font-semibold">
-          <Zap className="w-4 h-4 lg:w-5 lg:h-5" />
+        <h2 className="flex items-center gap-2">
+          <Zap className="w-5 h-5 lg:w-5 lg:h-5" />
           {title}
         </h2>
 
