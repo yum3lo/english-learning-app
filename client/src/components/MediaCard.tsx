@@ -8,20 +8,7 @@ import {
   CardContent, 
   CardFooter 
 } from '@/components/ui/card';
-
-interface MediaItem {
-  _id: string;
-  title: string;
-  type: 'article' | 'video';
-  url: string;
-  source: string;
-  description?: string;
-  imageUrl?: string;
-  cefrLevel: 'B2' | 'C1' | 'C2';
-  categories: string[];
-  duration?: string;
-  createdAt: string;
-}
+import { type MediaItem } from '@/data/mediaData';
 
 interface MediaCardProps {
   item: MediaItem;
@@ -30,7 +17,7 @@ interface MediaCardProps {
 
 const MediaCard = ({ item, className = '' }: MediaCardProps) => {
   return (
-    <Link to={`media/${item._id}`} className="block">
+    <Link to={item.type === 'article' ? `/reading/${item._id}` : `/listening/${item._id}`} className="block">
       <div className={`p-1 ${className}`}>
         <Card className='overflow-hidden hover:shadow-md transition-shadow'>
           <div className="relative aspect-video bg-muted/50 rounded-t-lg overflow-hidden">

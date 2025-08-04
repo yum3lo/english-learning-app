@@ -81,3 +81,26 @@
     border-color: hsl(var(--primary) / 0.1);
   }
 }
+
+/* prose styles to fix code styling */
+.prose-quoteless blockquote {
+  quotes: none;
+}
+
+.prose-quoteless code::before,
+.prose-quoteless code::after {
+  content: none !important;
+}
+
+.prose-quoteless blockquote > p:first-of-type::before {
+  content: none !important;
+}
+
+.prose-quoteless blockquote > p:last-of-type::after {
+  content: none !important;
+}
+
+.prose-quoteless blockquote > p::before,
+.prose-quoteless blockquote > p::after {
+    content: none !important;
+}

@@ -70,6 +70,7 @@ export default {
   	}
   },
   plugins: [
+    require('@tailwindcss/typography'),
     function({ addBase, theme }) {
       addBase({
         'p': {
@@ -100,7 +101,15 @@ export default {
           '@screen md': { fontSize: theme('fontSize.xl') },
           fontFamily: theme('fontFamily.serif'),
 					lineHeight: theme('lineHeight.normal')
-        }
+        },
+				'h4': {
+					fontSize: theme('fontSize.sm'),
+					fontWeight: theme('fontWeight.medium'),
+					'@screen sm': { fontSize: theme('fontSize.md') },
+					'@screen md': { fontSize: theme('fontSize.lg') },
+					fontFamily: theme('fontFamily.serif'),
+					lineHeight: theme('lineHeight.normal')
+				}
       });
     },
     require("tailwindcss-animate")
