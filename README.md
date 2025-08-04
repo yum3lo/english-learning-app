@@ -111,7 +111,7 @@ The app features a special welcome experience for my mom, complete with personal
 - **CORS Protection** - Cross-origin request security
 - **Password Security** - Proper password hashing and validation
 
-## 🚧 Future Enhancements
+## Future Enhancements
 
 - **AI-Powered Lessons** - Integration with language learning AI
 - **Speech Recognition** - Real-time pronunciation feedback
