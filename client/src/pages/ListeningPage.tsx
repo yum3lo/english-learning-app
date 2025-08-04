@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Volume2 } from 'lucide-react';
-import NewestCarousel from '@/components/NewestCarousel';
 import MediaCarousel from '@/components/MediaCarousel';
 import { type MediaItem } from '@/components/MediaCard';
 import videosData from '@/data/videos.json';
@@ -88,9 +87,12 @@ const ListeningPage = () => {
       }
       newestCarousel={
         newest.length > 0 ? (
-          <NewestCarousel
+          <MediaCarousel
             title="Newest Videos"
             items={newest}
+            variant="carousel"
+            icon={Volume2}
+            showMobileIndicators={true}
           />
         ) : undefined
       }

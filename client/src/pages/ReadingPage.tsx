@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen } from 'lucide-react';
-import NewestCarousel from '@/components/NewestCarousel';
+import { BookOpen, Zap } from 'lucide-react';
 import MediaCarousel from '@/components/MediaCarousel';
 import { type MediaItem } from '@/components/MediaCard';
 import articlesData from '@/data/articles.json';
@@ -83,9 +82,12 @@ const ReadingPage = () => {
       }
       newestCarousel={
         newest.length > 0 ? (
-          <NewestCarousel
+          <MediaCarousel
             title="Newest Articles"
             items={newest}
+            variant="carousel"
+            icon={Zap}
+            showMobileIndicators={true}
           />
         ) : undefined
       }
