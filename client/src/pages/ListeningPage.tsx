@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Zap } from 'lucide-react';
 import MediaCarousel from '@/components/MediaCarousel';
 import { type MediaItem } from '@/components/MediaCard';
 import videosData from '@/data/videos.json';
@@ -91,7 +91,7 @@ const ListeningPage = () => {
             title="Newest Videos"
             items={newest}
             variant="carousel"
-            icon={Volume2}
+            icon={Zap}
             showMobileIndicators={true}
           />
         ) : undefined
@@ -110,12 +110,10 @@ const ListeningPage = () => {
       }
       mainContent={
         <>
-          <div className="mb-8">
-            <MediaCarousel
-              title="All Videos"
-              items={filtered}
-            />
-          </div>
+          <MediaCarousel
+            title="All Videos"
+            items={filtered}
+          />
 
           {filtered.length === 0 && (
             <EmptyState

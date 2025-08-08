@@ -62,9 +62,9 @@ const MediaCarousel = ({
   }
 
   return (
-    <div className="mb-6 lg:mb-8">
+    <div>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="flex items-center gap-2 text-lg lg:text-xl font-semibold">
+        <h2 className="flex items-center gap-2">
           <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
           {title}
         </h2>
@@ -86,7 +86,7 @@ const MediaCarousel = ({
       >
         <CarouselContent className="-ml-2 md:-ml-4">
           {items.map((item) => (
-            <CarouselItem key={item._id} className='basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-2 md:pl-4 py-2'>
+            <CarouselItem key={item._id} className='basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4 pl-2 md:pl-4'>
               <MediaCard item={item} />
             </CarouselItem>
           ))}

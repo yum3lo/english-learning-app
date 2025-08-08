@@ -19,7 +19,7 @@ const MediaLayout = ({ header, newestCarousel, sidebar, mainContent }: MediaLayo
         <img
           src={leaves}
           alt="Leaves Image"
-          className="mx-auto m-4 h-auto w-full max-w-sm"
+          className="mx-auto m-8 h-auto w-full max-w-sm"
         />
 
         {/* mobile stack sidebar and content vertically */}
