@@ -17,7 +17,7 @@ const MainLayout = () => {
     <div className="flex flex-col min-h-screen">
       <Preloader />
       <WelcomePopup />
-      <div className="h-[76px]">
+      <div className="h-[72px]">
         <Navbar />
       </div>
       <main className="flex-grow overflow-x-hidden">
