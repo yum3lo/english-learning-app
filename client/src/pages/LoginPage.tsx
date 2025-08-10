@@ -78,7 +78,7 @@ const LoginPage = () => {
             Sign in to your account
           </CardTitle>
           <CardDescription>
-            <p className="text-sm text-foreground">
+            <p className="text-sm">
               Or{' '}
               <Link
                 to="/register"

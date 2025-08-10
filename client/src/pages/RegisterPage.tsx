@@ -162,7 +162,7 @@ const RegisterPage = () => {
             Create your account
           </CardTitle>
           <CardDescription>
-            <p className="text-sm text-foreground">
+            <p className="text-sm">
               Or{' '}
               <Link
                 to="/login"
@@ -258,8 +258,7 @@ const RegisterPage = () => {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
-                        !formData.dateOfBirth && "text-foreground",
-                        errors.dateOfBirth && "border-destructive"
+                        !formData.dateOfBirth && errors.dateOfBirth && "border-destructive"
                       )}
                     >
                       <CalendarIcon className="h-4 w-4" />
@@ -315,7 +314,7 @@ const RegisterPage = () => {
                     </Badge>
                   ))}
                 </div>
-                <p className="text-xs text-foreground mt-2">
+                <p className="text-xs mt-2">
                   Select your current English proficiency level
                 </p>
               </div>
@@ -336,7 +335,7 @@ const RegisterPage = () => {
                     </Badge>
                   ))}
                 </div>
-                <p className="text-xs text-foreground mt-2">
+                <p className="text-xs mt-2">
                   Click on the categories you're interested in
                 </p>
                 {errors.fieldsOfInterest && (

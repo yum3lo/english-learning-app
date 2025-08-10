@@ -39,16 +39,16 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
               style={{ display: item.imageUrl ? 'none' : 'flex' }}
             >
               {item.type === 'article' ? (
-                <BookOpen className="text-4xl text-foreground" />
+                <BookOpen className="text-4xl" />
               ) : (
-                <Play className="text-4xl text-foreground" />
+                <Play className="text-4xl" />
               )}
             </div>
             <div className='absolute top-2 left-2 bg-foreground text-background px-2 py-1 rounded text-xs font-semibold'>
               {item.cefrLevel}
             </div>
             {item.duration && (
-              <div className='absolute bottom-2 right-2 bg-muted text-muted-foreground px-2 py-1 rounded text-xs'>
+              <div className='absolute bottom-2 right-2 bg-muted px-2 py-1 rounded text-xs'>
                 {item.duration}
               </div>
             )}

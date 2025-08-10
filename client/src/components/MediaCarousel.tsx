@@ -71,7 +71,7 @@ const MediaCarousel = ({
 
         {/* mobile scroll indicator */}
         {showMobileIndicators && (
-          <div className="flex sm:hidden text-xs text-muted-foreground">
+          <div className="flex sm:hidden text-xs">
             {current} / {count}
           </div>
         )}

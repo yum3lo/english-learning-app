@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Volume2, Zap } from 'lucide-react';
+import { Headphones, Zap } from 'lucide-react';
 import MediaCarousel from '@/components/MediaCarousel';
 import { type MediaItem } from '@/components/MediaCard';
 import videosData from '@/data/videos.json';
@@ -80,7 +80,7 @@ const ListeningPage = () => {
     <MediaLayout
       header={
         <PageHeader
-          icon={Volume2}
+          icon={Headphones}
           title="Listening Practice"
           description="Improve your listening comprehension with curated videos for your level and preferences."
         />

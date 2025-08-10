@@ -208,7 +208,7 @@ const ProfilePage = () => {
               
               <div className="flex items-center justify-between pt-2 border-t">
                 <div>
-                  <p className="text-sm text-muted-foreground">Member Since</p>
+                  <p className="text-sm">Member Since</p>
                   <p className="text-sm font-medium flex items-center gap-2 mt-1">
                     <Calendar className="w-4 h-4" />
                     {formatDate(user.createdAt)}
@@ -272,14 +272,14 @@ const ProfilePage = () => {
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Current Level</p>
+                <p className="text-sm">Current Level</p>
                 <Badge variant="secondary" className="mt-1">
                   {user.cefrLevel}
                 </Badge>
               </div>
               {user.dateOfBirth && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Date of Birth</p>
+                  <p className="text-sm">Date of Birth</p>
                   <p className="text-sm font-medium mt-1">
                     {formatDate(user.dateOfBirth)}
                   </p>
@@ -325,7 +325,7 @@ const ProfilePage = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Progress to {nextLevel}</span>
-                  <span className="text-sm text-foreground">
+                  <span className="text-sm">
                     {Math.round(progressPercentage)}%
                   </span>
                 </div>
@@ -341,7 +341,7 @@ const ProfilePage = () => {
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                <h4 className="font-medium text-sm uppercase tracking-wide">
                   Points by Activity
                 </h4>
                 
@@ -368,10 +368,10 @@ const ProfilePage = () => {
                   
                   <div className="flex items-center justify-between p-3 bg-foreground/30 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Trophy className="w-4 h-4 text-foreground" />
+                      <Trophy className="w-4 h-4" />
                       <span className="text-sm font-medium">Flashcard</span>
                     </div>
-                    <Badge variant="outline" className="text-foreground border-foreground">
+                    <Badge variant="outline" className="border-foreground">
                       +{activityScores.flashcardsLearned}
                     </Badge>
                   </div>
@@ -381,7 +381,7 @@ const ProfilePage = () => {
           </CardContent>
         ) : (
           <CardContent>
-            <p className="text-muted-foreground">No further levels available.</p>
+            <p>No further levels available.</p>
           </CardContent>
         )}
       </Card>
@@ -414,7 +414,7 @@ const ProfilePage = () => {
                   </Badge>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs">
                 Selected {editedCategories.length} categories
               </p>
               <div className="flex gap-2">
@@ -440,7 +440,7 @@ const ProfilePage = () => {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground">No interests selected yet.</p>
+                  <p>No interests selected yet.</p>
                 )}
               </div>
               <div className="flex-shrink-0">

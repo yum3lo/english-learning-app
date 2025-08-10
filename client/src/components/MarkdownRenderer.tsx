@@ -23,7 +23,7 @@ const MarkdownRenderer = ({ content, className = '' }: MarkdownRendererProps) =>
             </blockquote>
           ),
           code: ({ children }) => (
-            <code className="bg-muted px-2 py-1 rounded text-sm font-mono text-foreground">{children}</code>
+            <code className="bg-muted px-2 py-1 rounded text-sm font-mono">{children}</code>
           ),
           pre: ({ children }) => (
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-4">{children}</pre>

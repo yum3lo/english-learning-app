@@ -60,7 +60,7 @@ const WelcomePopup = () => {
       <div className="bg-background rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-bounce-in">
         <button 
           onClick={handleClosePopup}
-          className="absolute top-4 right-4 text-red hover:text-foreground text-2xl"
+          className="absolute top-4 right-4 text-2xl"
           aria-label="Close"
         >
           <X />
