@@ -11,6 +11,7 @@ import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { useToast } from '@/hooks/use-toast';
 import { mediaDataService, type UnifiedMediaItem } from '@/data/mediaData';
 import { type VocabularyItem } from '@/data/vocabulary';
+import EmptyState from '@/components/EmptyState';
 
 const MediaPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -101,7 +102,7 @@ const MediaPage = () => {
             <h1>{media.title}</h1>
           </div>
           
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
+          <div className="flex flex-wrap items-center gap-4 text-sm mb-4">
             <div className="flex items-center gap-1">
               <User className="w-4 h-4" />
               {media.source}
@@ -161,20 +162,10 @@ const MediaPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Content not available for this media item.</p>
-            <p className="text-sm mt-2">
-              You can access the original content at:{' '}
-              <a 
-                href={media.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                {media.source}
-              </a>
-            </p>
-          </div>
+          <EmptyState 
+            title="Content Not Available" 
+            description="We're sorry, but the content you are looking for is not available at this time."
+          />
         )}
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Search } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -35,22 +36,24 @@ const FilterSearch = ({
   searchPlaceholder = "Search by title or description..."
 }: FilterSearchProps) => {
   return (
-    <div className="w-full lg:w-80 rounded-xl border bg-card text-card-foreground shadow p-4 lg:p-6">
-      <div className="mb-4 lg:mb-6">
-        <h3 className="mb-2 flex items-center gap-2">
+    <Card className="w-full lg:w-80">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
           <Search className="w-4 h-4 lg:w-5 lg:h-5" />
-          Filter & Search
-        </h3>
-        <p className="text-xs lg:text-sm text-muted-foreground">
-          {`Find ${mediaType} that match your interests and current level`}
-        </p>
-      </div>
+          <h3>Filter & Search</h3>
+        </CardTitle>
+        <CardDescription>
+          <p className="text-xs lg:text-sm">
+            {`Find ${mediaType} that match your interests and current level`}
+          </p>
+        </CardDescription>
+      </CardHeader>
 
-      <div className="space-y-3 lg:space-y-4">
+      <CardContent className="space-y-3 lg:space-y-4">
         <div>
           <Label className="text-sm">{`Search ${mediaType}`}</Label>
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4" />
             <Input
               type="text"
               placeholder={searchPlaceholder}
@@ -111,8 +114,8 @@ const FilterSearch = ({
             Clear all filters
           </Button>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
