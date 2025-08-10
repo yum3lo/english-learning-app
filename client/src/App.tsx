@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import ReadingPage from './pages/ReadingPage';
 import ListeningPage from './pages/ListeningPage';
 import MediaPage from './pages/MediaPage';
+import VocabularyPage from "./pages/VocabularyPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -28,6 +29,7 @@ const AppContent = () => {
         <Route path="reading/:id" element={<MediaPage />} />
         <Route path="listening" element={<ListeningPage />} />
         <Route path="listening/:id" element={<MediaPage />} />
+        <Route path="vocabulary" element={<VocabularyPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     )
