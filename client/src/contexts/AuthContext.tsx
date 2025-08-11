@@ -42,6 +42,8 @@ interface AuthContextType {
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  recordWordLearned: () => Promise<void>;
+  recordMediaCompleted: (mediaType: 'article' | 'video') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -193,6 +195,85 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const recordWordLearned = async (): Promise<void> => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/users/progress/word-learned', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record word learned');
+      }
+
+      const data = await response.json();
+      
+      if (user) {
+        const updatedUser = { ...user, wordsLearned: data.wordsLearned };
+        setUser(updatedUser);
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      console.error('Record word learned error:', error);
+    }
+  };
+
+  const recordMediaCompleted = async (mediaType: 'article' | 'video'): Promise<void> => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/users/progress/media-completed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ mediaType }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record media completion');
+      }
+
+      const data = await response.json();
+      
+      if (user) {
+        const updatedUser = { 
+          ...user, 
+          articlesRead: data.articlesRead,
+          videosWatched: data.videosWatched,
+          points: data.points
+        };
+        setUser(updatedUser);
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+
+      toast({
+        title: `${mediaType === 'article' ? 'Article' : 'Video'} completed!`,
+        description: `Great job! You've completed another ${mediaType} and earned 5 points.`,
+      });
+    } catch (error) {
+      console.error('Record media completion error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: `Failed to record ${mediaType} completion. Please try again.`,
+      });
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -201,6 +282,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updateUser,
+    recordWordLearned,
+    recordMediaCompleted,
   };
 
   return (

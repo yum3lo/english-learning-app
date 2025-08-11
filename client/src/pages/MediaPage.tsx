@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, BookOpen, Clock, Calendar, User, Star, Volume2, Library } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, Calendar, User, Star, Volume2, Library, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -16,12 +16,14 @@ import EmptyState from '@/components/EmptyState';
 const MediaPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, recordMediaCompleted } = useAuth();
   const { toast } = useToast();
   
   const [media, setMedia] = useState<UnifiedMediaItem | null>(null);
   const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
   useEffect(() => {
     const fetchMediaData = async () => {
@@ -59,6 +61,31 @@ const MediaPage = () => {
 
     fetchMediaData();
   }, [id, user, navigate, toast]);
+
+  useEffect(() => {
+    if (media && id) {
+      const completedMediaKey = `completed_${media.type}_${id}`;
+      const isAlreadyCompleted = localStorage.getItem(completedMediaKey) === 'true';
+      setIsCompleted(isAlreadyCompleted);
+    }
+  }, [media, id]);
+
+  const handleCompleteMedia = async () => {
+    if (!media || !id || isCompleted) return;
+
+    setIsCompleting(true);
+    try {
+      await recordMediaCompleted(media.type);
+      
+      const completedMediaKey = `completed_${media.type}_${id}`;
+      localStorage.setItem(completedMediaKey, 'true');
+      setIsCompleted(true);
+    } catch (error) {
+      console.error('Failed to complete media:', error);
+    } finally {
+      setIsCompleting(false);
+    }
+  };
 
   const formatDuration = (duration: string) => {
     return duration;
@@ -167,6 +194,23 @@ const MediaPage = () => {
             description="We're sorry, but the content you are looking for is not available at this time."
           />
         )}
+
+        <div className="mt-8 flex justify-center">
+          <Button
+            onClick={handleCompleteMedia}
+            disabled={isCompleting || isCompleted}
+            size="lg"
+            className="flex items-center gap-2"
+          >
+            <CheckCircle className="w-5 h-5" />
+            {isCompleted 
+              ? `${media.type === 'article' ? 'Article' : 'Video'} completed!`
+              : isCompleting 
+                ? 'Marking as complete...'
+                : `Mark as complete`
+            }
+          </Button>
+        </div>
       </div>
     </div>
   );
