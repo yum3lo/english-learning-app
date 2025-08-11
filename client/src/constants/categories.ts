@@ -19,21 +19,13 @@ export const CATEGORIES = [
 
 export const CEFR_LEVELS = ['B2', 'C1', 'C2'] as const;
 
-export const DURATIONS = ['Short (< 15 min)', 'Medium (15-30 min)', 'Long (> 30 min)'] as const;
-
-export const ACTIVITY_TYPES = [
-  'read',
-  'watched', 
-  'vocabulary_click',
-  'flashcard_review'
-] as const;
-
 export const MEDIA_TYPES = ['video', 'article'] as const;
+
+export const DURATIONS = ['Short (< 15 min)', 'Medium (15-30 min)', 'Long (> 30 min)'] as const;
 
 export type Category = typeof CATEGORIES[number];
 export type CEFRLevel = typeof CEFR_LEVELS[number];
 export type Duration = typeof DURATIONS[number];
-export type ActivityType = typeof ACTIVITY_TYPES[number];
 export type MediaType = typeof MEDIA_TYPES[number];
 
 export const categorizeDuration = (duration: string): Duration => {

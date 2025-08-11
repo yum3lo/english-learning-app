@@ -2,6 +2,7 @@ import articlesData from './articles.json';
 import videosData from './videos.json';
 import { vocabularyData, type VocabularyItem } from './vocabulary';
 import { mediaContentData } from './mediaContent';
+import type { CEFRLevel } from '@/constants/categories';
 
 export interface MediaItem {
   _id: string;
@@ -11,7 +12,7 @@ export interface MediaItem {
   source: string;
   description: string;
   imageUrl?: string;
-  cefrLevel: 'B2' | 'C1' | 'C2';
+  cefrLevel: CEFRLevel;
   categories: string[];
   duration?: string;
   createdAt: string;
@@ -73,11 +74,11 @@ class MediaDataService {
     return this.allMediaItems.filter(item => item.type === type);
   }
 
-  public getMediaByLevel(level: 'B2' | 'C1' | 'C2'): MediaItem[] {
+  public getMediaByLevel(level: CEFRLevel): MediaItem[] {
     return this.allMediaItems.filter(item => item.cefrLevel === level);
   }
 
-  public getVocabularyForMedia(id: string, level?: 'B2' | 'C1' | 'C2'): VocabularyItem[] {
+  public getVocabularyForMedia(id: string, level?: CEFRLevel): VocabularyItem[] {
     const vocabulary = this.vocabularyMap[id] || [];
     if (level) {
       return vocabulary.filter(vocab => vocab.cefrLevel === level);

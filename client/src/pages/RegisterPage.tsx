@@ -13,7 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { CATEGORIES } from '@/constants/categories';
+import { CATEGORIES, CEFR_LEVELS, type CEFRLevel } from '@/constants/categories';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +24,7 @@ const RegisterPage = () => {
     password: '',
     confirmPassword: '',
     dateOfBirth: undefined as Date | undefined,
-    cefrLevel: 'B2' as 'B2' | 'C1' | 'C2',
+    cefrLevel: 'B2' as CEFRLevel,
     fieldsOfInterest: [] as string[],
     aiDataConsent: false,
     createdAt: new Date().toISOString().split('T')[0]
@@ -298,7 +298,7 @@ const RegisterPage = () => {
                   English Level (CEFR)
                 </Label>
                 <div className="flex gap-2">
-                  {(['B2', 'C1', 'C2'] as const).map((level) => (
+                  {CEFR_LEVELS.map((level) => (
                     <Badge
                       key={level}
                       variant={formData.cefrLevel === level ? "default" : "outline"}

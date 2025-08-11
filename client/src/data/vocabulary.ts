@@ -1,10 +1,12 @@
+import type { CEFRLevel } from '@/constants/categories';
+
 export interface VocabularyItem {
   word: string;
   definition: string;
   partOfSpeech: string;
   example: string;
   pronunciation: string;
-  cefrLevel: 'B2' | 'C1' | 'C2';
+  cefrLevel: CEFRLevel;
 }
 
 export const vocabularyData: Record<string, VocabularyItem[]> = {

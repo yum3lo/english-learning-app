@@ -1,13 +1,14 @@
 import { useToast } from '@/hooks/use-toast';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import type { CEFRLevel } from '@/constants/categories';
 
 interface User {
   id: string;
   email: string;
   name: string;
   dateOfBirth?: string;
-  cefrLevel: 'B2' | 'C1' | 'C2';
+  cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
   aiDataConsent: boolean;
   points: number;
@@ -28,7 +29,7 @@ interface RegisterCredentials {
   password: string;
   confirmPassword: string;
   dateOfBirth?: string;
-  cefrLevel: 'B2' | 'C1' | 'C2';
+  cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
   aiDataConsent: boolean;
   createdAt: string;

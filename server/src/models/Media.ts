@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { CATEGORIES, CEFR_LEVELS, MEDIA_TYPES } from '../constants/categories';
+import { CATEGORIES, CEFR_LEVELS, MEDIA_TYPES, CEFRLevel } from '@client/constants/categories';
 
 export interface IMedia extends Document {
   _id: string;
@@ -11,10 +11,9 @@ export interface IMedia extends Document {
   description?: string;
   duration?: number;
   transcription?: string;
-  cefrLevel: 'B2' | 'C1' | 'C2';
+  cefrLevel: CEFRLevel;
   categories: string[];
   vocabularyWords: mongoose.Types.ObjectId[];
-  grammarTopics: string[];
   createdAt: Date;
 }
 
@@ -69,10 +68,6 @@ const mediaSchema = new Schema<IMedia>({
   vocabularyWords: [{
     type: Schema.Types.ObjectId,
     ref: 'VocabularyWord'
-  }],
-  grammarTopics: [{
-    type: String,
-    trim: true
   }]
 }, {
   timestamps: true

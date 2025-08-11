@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { CATEGORIES, CEFR_LEVELS } from '../constants/categories';
+import { CATEGORIES, CEFR_LEVELS, CEFRLevel } from '@client/constants/categories';
 
 export interface IUser extends Document {
   _id: string;
@@ -8,7 +8,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   dateOfBirth?: Date;
-  cefrLevel: 'B2' | 'C1' | 'C2';
+  cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
   aiDataConsent: boolean;
   points: number;
