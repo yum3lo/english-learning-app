@@ -60,6 +60,7 @@ interface AuthContextType {
   register: (credentials: RegisterCredentials) => Promise<void>;
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
+  deleteAccount: () => Promise<void>;
   recordWordLearned: () => Promise<void>;
   recordMediaCompleted: (mediaType: 'article' | 'video', mediaId: string) => Promise<void>;
   addLearnedWord: (wordData: {
@@ -354,6 +355,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteAccount = async (): Promise<void> => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/users/profile', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete account');
+      }
+
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      setUser(null);
+
+      toast({
+        title: "Account deleted successfully",
+        description: "Your account and all associated data have been permanently deleted.",
+        variant: "destructive"
+      });
+    } catch (error) {
+      console.error('Delete account error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete account. Please try again.",
+      });
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -362,6 +403,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     updateUser,
+    deleteAccount,
     recordWordLearned,
     recordMediaCompleted,
     addLearnedWord,

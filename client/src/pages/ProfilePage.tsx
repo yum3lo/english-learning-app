@@ -11,7 +11,7 @@ import { CATEGORIES } from '@/constants/categories';
 import { useToast } from '@/hooks/use-toast';
 
 const ProfilePage = () => {
-  const { user, logout, updateUser } = useAuth();
+  const { user, updateUser, deleteAccount } = useAuth();
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingInterests, setIsEditingInterests] = useState(false);
   const [editedName, setEditedName] = useState(user?.name || '');
@@ -140,21 +140,17 @@ const ProfilePage = () => {
     setIsEditingInterests(false);
   };
 
-  const deleteAccount = () => {
+  const handleDeleteAccount = async () => {
     const userConfirmation = window.confirm(
       'Are you sure you want to delete your account? This action cannot be undone.'
     );
     
     if (userConfirmation) {
-      // to be replaced with actual delete API call
-      toast({
-        title: "Account deleted",
-        description: "Your account was successfully deleted.",
-        variant: "destructive"
-      });
-      setTimeout(() => {
-        logout();
-      }, 3000);
+      try {
+        await deleteAccount();
+      } catch (error) {
+        console.error('Delete account failed:', error);
+      }
     }
   };
 
@@ -459,7 +455,7 @@ const ProfilePage = () => {
           variant="destructive"
           size="lg"
           className="w-full sm:w-auto"
-          onClick={deleteAccount}
+          onClick={handleDeleteAccount}
         >
           <Trash className="w-4 h-4" />
           Delete Account
