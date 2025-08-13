@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ArrowLeft, Zap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import FlashcardView from '@/components/FlashcardView';
-import { type VocabularyItem, vocabularyData } from '@/data/vocabulary';
+import { type VocabularyItem, convertLearnedWordsToVocabulary } from '@/data/vocabulary';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
@@ -23,8 +23,12 @@ const FlashcardsPage = () => {
     const fetchVocabulary = async () => {
       setLoading(true);
       try {
-        const userVocabulary: VocabularyItem[] = Object.values(vocabularyData).flat();
-        setWords(userVocabulary);
+        if (user?.learnedWords && user.learnedWords.length > 0) {
+          const userVocabulary = convertLearnedWordsToVocabulary(user.learnedWords);
+          setWords(userVocabulary);
+        } else {
+          setWords([]);
+        }
       } catch (error) {
         toast({
           variant: "destructive",

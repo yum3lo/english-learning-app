@@ -3,6 +3,21 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CEFRLevel } from '@/constants/categories';
 
+interface LearnedWord {
+  word: string;
+  definition: string;
+  partOfSpeech: string;
+  example?: string;
+  pronunciation?: string;
+  learnedAt: Date;
+}
+
+interface CompletedMedia {
+  mediaId: string;
+  mediaType: 'article' | 'video';
+  completedAt: Date;
+}
+
 interface User {
   id: string;
   email: string;
@@ -15,6 +30,8 @@ interface User {
   wordsLearned: number;
   articlesRead: number;
   videosWatched: number;
+  learnedWords: LearnedWord[];
+  completedMedia: CompletedMedia[];
   createdAt: string;
 }
 
@@ -44,7 +61,14 @@ interface AuthContextType {
   logout: () => void;
   updateUser: (userData: Partial<User>) => void;
   recordWordLearned: () => Promise<void>;
-  recordMediaCompleted: (mediaType: 'article' | 'video') => Promise<void>;
+  recordMediaCompleted: (mediaType: 'article' | 'video', mediaId: string) => Promise<void>;
+  addLearnedWord: (wordData: {
+    word: string;
+    definition: string;
+    partOfSpeech: string;
+    example?: string;
+    pronunciation?: string;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -227,7 +251,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const recordMediaCompleted = async (mediaType: 'article' | 'video'): Promise<void> => {
+  const recordMediaCompleted = async (mediaType: 'article' | 'video', mediaId: string): Promise<void> => {
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
@@ -240,7 +264,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ mediaType }),
+        body: JSON.stringify({ mediaType, mediaId }),
       });
 
       if (!response.ok) {
@@ -275,6 +299,61 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const addLearnedWord = async (wordData: {
+    word: string;
+    definition: string;
+    partOfSpeech: string;
+    example?: string;
+    pronunciation?: string;
+  }) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/users/learned-word', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(wordData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add word to learned words');
+      }
+
+      const data = await response.json();
+      
+      if (user) {
+        const updatedUser = { 
+          ...user, 
+          wordsLearned: data.wordsLearned,
+          points: data.points,
+          learnedWords: [...(user.learnedWords || []), data.learnedWord]
+        };
+        setUser(updatedUser);
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+
+      toast({
+        title: "Word learned!",
+        description: `Great job! You've learned "${wordData.word}".`,
+      });
+    } catch (error) {
+      console.error('Add learned word error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add word to learned words. Please try again.",
+      });
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -285,6 +364,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateUser,
     recordWordLearned,
     recordMediaCompleted,
+    addLearnedWord,
   };
 
   return (

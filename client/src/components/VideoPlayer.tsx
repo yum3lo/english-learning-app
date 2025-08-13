@@ -2,15 +2,16 @@ import { useState } from 'react';
 import { FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import MarkdownRenderer from './MarkdownRenderer';
+import InteractiveMarkdownRenderer from './InteractiveMarkdownRenderer';
 
 interface VideoPlayerProps {
   videoUrl: string;
   title: string;
   transcript?: string;
+  onWordClick?: (word: string) => void;
 }
 
-const VideoPlayer = ({ videoUrl, title, transcript }: VideoPlayerProps) => {
+const VideoPlayer = ({ videoUrl, title, transcript, onWordClick }: VideoPlayerProps) => {
   const [showTranscript, setShowTranscript] = useState(false);
   
   // extract youtube video id for embedding
@@ -51,7 +52,10 @@ const VideoPlayer = ({ videoUrl, title, transcript }: VideoPlayerProps) => {
           {showTranscript && (
             <Card>
               <CardContent className='mt-8'>
-                <MarkdownRenderer content={transcript} />
+                <InteractiveMarkdownRenderer 
+                  content={transcript} 
+                  onWordClick={onWordClick}
+                />
               </CardContent>
             </Card>
           )}

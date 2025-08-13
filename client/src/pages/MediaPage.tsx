@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, BookOpen, Clock, Calendar, User, Star, Volume2, Library, CheckCircle } from 'lucide-react';
+import { ArrowLeft, BookOpen, Clock, Calendar, User, Volume2, Library, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import VocabularyCard from '@/components/VocabularyCard';
 import VideoPlayer from '@/components/VideoPlayer';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
+import InteractiveMarkdownRenderer from '@/components/InteractiveMarkdownRenderer';
+import DictionaryPopup from '@/components/DictionaryPopup';
 import { useToast } from '@/hooks/use-toast';
+import { useDictionary } from '@/hooks/useDictionary';
 import { mediaDataService, type UnifiedMediaItem } from '@/data/mediaData';
-import { type VocabularyItem } from '@/data/vocabulary';
 import EmptyState from '@/components/EmptyState';
 
 const MediaPage = () => {
@@ -20,10 +20,20 @@ const MediaPage = () => {
   const { toast } = useToast();
   
   const [media, setMedia] = useState<UnifiedMediaItem | null>(null);
-  const [vocabulary, setVocabulary] = useState<VocabularyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  
+  const {
+    selectedWord,
+    dictionaryData,
+    isDictionaryOpen,
+    isLoadingDictionary,
+    isAddingToLearned,
+    handleWordClick,
+    handleAddToLearned,
+    handleCloseDictionary,
+  } = useDictionary();
 
   useEffect(() => {
     const fetchMediaData = async () => {
@@ -42,11 +52,6 @@ const MediaPage = () => {
         }
 
         setMedia(foundMedia);
-        
-        const userLevel = user?.cefrLevel || 'B2';
-        const levelVocabulary = mediaDataService.getVocabularyForMedia(id, userLevel);
-        setVocabulary(levelVocabulary);
-        
       } catch (error) {
         toast({
           variant: "destructive",
@@ -63,22 +68,21 @@ const MediaPage = () => {
   }, [id, user, navigate, toast]);
 
   useEffect(() => {
-    if (media && id) {
-      const completedMediaKey = `completed_${media.type}_${id}`;
-      const isAlreadyCompleted = localStorage.getItem(completedMediaKey) === 'true';
+    if (media && id && user) {
+      // checking if media is completed on the server side
+      const isAlreadyCompleted = user.completedMedia?.some(
+        completedMedia => completedMedia.mediaId === id && completedMedia.mediaType === media.type
+      ) || false;
       setIsCompleted(isAlreadyCompleted);
     }
-  }, [media, id]);
+  }, [media, id, user]);
 
   const handleCompleteMedia = async () => {
     if (!media || !id || isCompleted) return;
 
     setIsCompleting(true);
     try {
-      await recordMediaCompleted(media.type);
-      
-      const completedMediaKey = `completed_${media.type}_${id}`;
-      localStorage.setItem(completedMediaKey, 'true');
+      await recordMediaCompleted(media.type, id);
       setIsCompleted(true);
     } catch (error) {
       console.error('Failed to complete media:', error);
@@ -157,20 +161,6 @@ const MediaPage = () => {
           </div>
         </div>
 
-        {vocabulary.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Star />
-              <h2>Key Vocabulary</h2>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {vocabulary.map((vocab, index) => (
-                <VocabularyCard key={index} vocabulary={vocab} />
-              ))}
-            </div>
-          </div>
-        )}
-
         <h2 className="flex items-center gap-2 mb-4">
           <Library />
           {media.type === 'article' ? 'Article Content' : 'Video Content'}
@@ -181,11 +171,15 @@ const MediaPage = () => {
             videoUrl={media.content.videoUrl}
             title={media.title}
             transcript={media.content.transcript}
+            onWordClick={handleWordClick}
           />
         ) : media.content?.content ? (
           <Card>
             <CardContent className='mt-8'>
-              <MarkdownRenderer content={media.content.content} />
+              <InteractiveMarkdownRenderer 
+                content={media.content.content} 
+                onWordClick={handleWordClick}
+              />
             </CardContent>
           </Card>
         ) : (
@@ -212,6 +206,16 @@ const MediaPage = () => {
           </Button>
         </div>
       </div>
+
+      <DictionaryPopup
+        word={selectedWord}
+        dictionaryData={dictionaryData}
+        isOpen={isDictionaryOpen}
+        onClose={handleCloseDictionary}
+        onAddToLearned={handleAddToLearned}
+        isAddingToLearned={isAddingToLearned}
+        isLoading={isLoadingDictionary}
+      />
     </div>
   );
 };

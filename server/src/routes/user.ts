@@ -33,6 +33,8 @@ router.get('/profile', authenticate, async (req: AuthenticatedRequest, res: Resp
         wordsLearned: user.wordsLearned,
         articlesRead: user.articlesRead,
         videosWatched: user.videosWatched,
+        learnedWords: user.learnedWords,
+        completedMedia: user.completedMedia,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
@@ -194,7 +196,10 @@ router.post('/progress/media-completed', [
   authenticate,
   body('mediaType')
     .isIn(['article', 'video'])
-    .withMessage('Media type must be either article or video')
+    .withMessage('Media type must be either article or video'),
+  body('mediaId')
+    .notEmpty()
+    .withMessage('Media ID is required')
 ], async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
@@ -216,7 +221,24 @@ router.post('/progress/media-completed', [
       return;
     }
 
-    const { mediaType } = req.body;
+    const { mediaType, mediaId } = req.body;
+    const alreadyCompleted = user.completedMedia.some(
+      media => media.mediaId === mediaId && media.mediaType === mediaType
+    );
+
+    if (alreadyCompleted) {
+      res.status(400).json({
+        success: false,
+        message: 'Media already completed'
+      });
+      return;
+    }
+
+    user.completedMedia.push({
+      mediaId,
+      mediaType,
+      completedAt: new Date()
+    });
 
     if (mediaType === 'article') {
       user.articlesRead += 1;
@@ -242,5 +264,75 @@ router.post('/progress/media-completed', [
     });
   }
 });
+
+// @route   POST /api/users/learned-word
+// @desc    Add a word to user's learned words
+// @access  Private
+router.post('/learned-word', 
+  authenticate,
+  [
+    body('word').notEmpty().withMessage('Word is required'),
+    body('definition').notEmpty().withMessage('Definition is required'),
+    body('partOfSpeech').notEmpty().withMessage('Part of speech is required')
+  ],
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
+        return;
+      }
+
+      const { word, definition, partOfSpeech, example, pronunciation } = req.body;
+      const existingWord = user.learnedWords.find(w => w.word.toLowerCase() === word.toLowerCase());
+      if (existingWord) {
+        res.status(400).json({
+          success: false,
+          message: 'Word already exists in learned words'
+        });
+        return;
+      }
+
+      user.learnedWords.push({
+        word,
+        definition,
+        partOfSpeech,
+        example,
+        pronunciation,
+        learnedAt: new Date()
+      });
+
+      user.wordsLearned += 1;
+      await user.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Word added to learned words',
+        wordsLearned: user.wordsLearned,
+        points: user.points,
+        learnedWord: user.learnedWords[user.learnedWords.length - 1]
+      });
+    } catch (error) {
+      console.error('Add learned word error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error adding learned word'
+      });
+    }
+  }
+);
 
 export default router;

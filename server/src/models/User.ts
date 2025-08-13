@@ -2,6 +2,21 @@ import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { CATEGORIES, CEFR_LEVELS, CEFRLevel } from '../constants/categories';
 
+export interface LearnedWord {
+  word: string;
+  definition: string;
+  partOfSpeech: string;
+  example?: string;
+  pronunciation?: string;
+  learnedAt: Date;
+}
+
+export interface CompletedMedia {
+  mediaId: string;
+  mediaType: 'article' | 'video';
+  completedAt: Date;
+}
+
 export interface IUser extends Document {
   _id: string;
   name: string;
@@ -15,6 +30,8 @@ export interface IUser extends Document {
   wordsLearned: number;
   articlesRead: number;
   videosWatched: number;
+  learnedWords: LearnedWord[];
+  completedMedia: CompletedMedia[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -74,7 +91,42 @@ const userSchema = new Schema<IUser>({
   videosWatched: {
     type: Number,
     default: 0
-  }
+  },
+  learnedWords: [{
+    word: {
+      type: String,
+      required: true
+    },
+    definition: {
+      type: String,
+      required: true
+    },
+    partOfSpeech: {
+      type: String,
+      required: true
+    },
+    example: String,
+    pronunciation: String,
+    learnedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  completedMedia: [{
+    mediaId: {
+      type: String,
+      required: true
+    },
+    mediaType: {
+      type: String,
+      enum: ['article', 'video'],
+      required: true
+    },
+    completedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });

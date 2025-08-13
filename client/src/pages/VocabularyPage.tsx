@@ -3,7 +3,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { BookMarked, ArrowUpDown, Shuffle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VocabularyCard from '@/components/VocabularyCard';
-import { type VocabularyItem, vocabularyData } from '@/data/vocabulary';
+import DictionaryPopup from '@/components/DictionaryPopup';
+import { type VocabularyItem, convertLearnedWordsToVocabulary } from '@/data/vocabulary';
+import { useDictionary } from '@/hooks/useDictionary';
 import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
@@ -20,14 +22,29 @@ const VocabularyPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const wordsPerPage = 9;
 
+  const {
+    selectedWord,
+    dictionaryData,
+    isDictionaryOpen,
+    isLoadingDictionary,
+    isAddingToLearned,
+    handleWordClick,
+    handleAddToLearned,
+    handleCloseDictionary,
+  } = useDictionary();
+
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchVocabulary = async () => {
       setLoading(true);
       try {
-        const userVocabulary: VocabularyItem[] = Object.values(vocabularyData).flat();
-        setWords(userVocabulary);
+        if (user?.learnedWords && user.learnedWords.length > 0) {
+          const userVocabulary = convertLearnedWordsToVocabulary(user.learnedWords);
+          setWords(userVocabulary);
+        } else {
+          setWords([]);
+        }
       } catch (error) {
         toast({
           variant: "destructive",
@@ -108,7 +125,11 @@ const VocabularyPage = () => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {currentWords.map((word, index) => (
-                  <VocabularyCard key={`${word.word}-${index}`} vocabulary={word} />
+                  <VocabularyCard 
+                    key={`${word.word}-${index}`} 
+                    vocabulary={word} 
+                    onWordClick={handleWordClick}
+                  />
                 ))}
               </div>
               
@@ -169,6 +190,16 @@ const VocabularyPage = () => {
           )}
         </div>
       </div>
+
+      <DictionaryPopup
+        word={selectedWord}
+        dictionaryData={dictionaryData}
+        isOpen={isDictionaryOpen}
+        onClose={handleCloseDictionary}
+        onAddToLearned={handleAddToLearned}
+        isAddingToLearned={isAddingToLearned}
+        isLoading={isLoadingDictionary}
+      />
     </div>
   );
 };

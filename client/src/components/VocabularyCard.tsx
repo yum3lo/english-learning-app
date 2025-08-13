@@ -1,18 +1,26 @@
 import { type VocabularyItem } from '@/data/vocabulary';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import PronunciationButton from './PronunciationButton';
+import ClickableText from './ClickableText';
 
 interface VocabularyCardProps {
   vocabulary: VocabularyItem;
+  onWordClick?: (word: string) => void;
 }
 
-const VocabularyCard = ({ vocabulary }: VocabularyCardProps) => {
+const VocabularyCard = ({ vocabulary, onWordClick }: VocabularyCardProps) => {
   return (
     <Card className="shadow-md hover:shadow-lg transition-shadow duration-200">
       <CardHeader>
         <CardTitle>
           <div className="flex items-start justify-between gap-2">
-            <span className="text-lg text-primary font-semibold break-words flex-1">{vocabulary.word}</span>
+            <span 
+              className="text-lg text-primary font-semibold break-words flex-1"
+              onClick={() => onWordClick && onWordClick(vocabulary.word)}
+              style={{ cursor: onWordClick ? 'pointer' : 'default' }}
+            >
+              {vocabulary.word}
+            </span>
             <PronunciationButton
               word={vocabulary.word}
               pronunciation={vocabulary.pronunciation}
@@ -29,10 +37,10 @@ const VocabularyCard = ({ vocabulary }: VocabularyCardProps) => {
       </CardHeader>
       <CardContent className="space-y-2">
         <p className="text-sm">
-          <span className="font-medium">Definition:</span> {vocabulary.definition}
+          <span className="font-medium">Definition:</span> <ClickableText text={vocabulary.definition} onWordClick={onWordClick} />
         </p>
         <p className="text-sm">
-          <span className="font-medium">Example:</span> <em>"{vocabulary.example}"</em>
+          <span className="font-medium">Example:</span> <em>"<ClickableText text={vocabulary.example} onWordClick={onWordClick} />"</em>
         </p>
       </CardContent>
     </Card>
