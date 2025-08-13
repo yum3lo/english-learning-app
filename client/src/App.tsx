@@ -15,6 +15,7 @@ import ListeningPage from './pages/ListeningPage';
 import MediaPage from './pages/MediaPage';
 import VocabularyPage from "./pages/VocabularyPage";
 import FlashcardsPage from "./pages/FlashcardsPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -25,13 +26,41 @@ const AppContent = () => {
         <Route index element={<HomePage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="login" element={<LoginPage />} />
-        <Route path="profile" element={<ProfilePage /> } />
-        <Route path="reading" element={<ReadingPage />} />
-        <Route path="reading/:id" element={<MediaPage />} />
-        <Route path="listening" element={<ListeningPage />} />
-        <Route path="listening/:id" element={<MediaPage />} />
-        <Route path="vocabulary" element={<VocabularyPage />} />
-        <Route path="flashcards" element={<FlashcardsPage />} />
+        <Route path="profile" element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        } />
+        <Route path="reading" element={
+          <ProtectedRoute>
+            <ReadingPage />
+          </ProtectedRoute>
+        } />
+        <Route path="reading/:id" element={
+          <ProtectedRoute>
+            <MediaPage />
+          </ProtectedRoute>
+        } />
+        <Route path="listening" element={
+          <ProtectedRoute>
+            <ListeningPage />
+          </ProtectedRoute>
+        } />
+        <Route path="listening/:id" element={
+          <ProtectedRoute>
+            <MediaPage />
+          </ProtectedRoute>
+        } />
+        <Route path="vocabulary" element={
+          <ProtectedRoute>
+            <VocabularyPage />
+          </ProtectedRoute>
+        } />
+        <Route path="flashcards" element={
+          <ProtectedRoute>
+            <FlashcardsPage />
+          </ProtectedRoute>
+        } />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     )

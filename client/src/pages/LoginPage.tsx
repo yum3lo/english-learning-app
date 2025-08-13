@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ const LoginPage = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,7 +63,9 @@ const LoginPage = () => {
     try {
       await login(formData);
       
-      navigate('/');
+      // redirecting the user to the wanted page or home page
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setErrors({ general: errorMessage });

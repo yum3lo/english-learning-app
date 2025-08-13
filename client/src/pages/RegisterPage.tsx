@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import tulips from '../assets/tulips.png';
 import ladybug from '../assets/ladybug.png';
@@ -34,6 +34,7 @@ const RegisterPage = () => {
   
   const { register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -128,7 +129,8 @@ const RegisterPage = () => {
       };
       await register(submitData);
       
-      navigate('/');
+      const from = location.state?.from?.pathname || '/';
+      navigate(from, { replace: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Registration failed';
       setErrors({ general: errorMessage });
