@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { CATEGORIES, CEFR_LEVELS, CEFRLevel } from '@client/constants/categories';
+import { CATEGORIES, CEFR_LEVELS, CEFRLevel } from '../constants/categories';
 
 export interface IUser extends Document {
   _id: string;

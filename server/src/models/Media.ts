@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { CATEGORIES, CEFR_LEVELS, MEDIA_TYPES, CEFRLevel } from '@client/constants/categories';
+import { CATEGORIES, CEFR_LEVELS, MEDIA_TYPES, CEFRLevel } from '../constants/categories';
 
 export interface IMedia extends Document {
   _id: string;

@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { CEFR_LEVELS, CEFRLevel } from '@client/constants/categories';
+import { CEFR_LEVELS, CEFRLevel } from '../constants/categories';
 
 export interface IVocabularyWord extends Document {
   _id: string;
