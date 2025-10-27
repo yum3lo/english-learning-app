@@ -25,7 +25,6 @@ export interface IUser extends Document {
   dateOfBirth?: Date;
   cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
-  aiDataConsent: boolean;
   points: number;
   wordsLearned: number;
   articlesRead: number;
@@ -72,10 +71,6 @@ const userSchema = new Schema<IUser>({
     type: String,
     enum: CATEGORIES
   }],
-  aiDataConsent: {
-    type: Boolean,
-    default: false
-  },
   points: {
     type: Number,
     default: 0

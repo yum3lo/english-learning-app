@@ -174,37 +174,39 @@ const MediaPage = () => {
             onWordClick={handleWordClick}
           />
         ) : media.content?.content ? (
-          <Card>
-            <CardContent className='mt-8'>
-              <InteractiveMarkdownRenderer 
-                content={media.content.content} 
-                onWordClick={handleWordClick}
-              />
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardContent className='mt-8'>
+                <InteractiveMarkdownRenderer 
+                  content={media.content.content} 
+                  onWordClick={handleWordClick}
+                />
+              </CardContent>
+            </Card>
+
+            <div className="mt-8 flex justify-center">
+              <Button
+                onClick={handleCompleteMedia}
+                disabled={isCompleting || isCompleted}
+                size="lg"
+                className="flex items-center gap-2"
+              >
+                <CheckCircle className="w-5 h-5" />
+                {isCompleted 
+                  ? `${media.type === 'article' ? 'Article' : 'Video'} completed!`
+                  : isCompleting 
+                    ? 'Marking as complete...'
+                    : `Mark as complete`
+                }
+              </Button>
+            </div>
+          </>
         ) : (
           <EmptyState 
             title="Content Not Available" 
             description="We're sorry, but the content you are looking for is not available at this time."
           />
         )}
-
-        <div className="mt-8 flex justify-center">
-          <Button
-            onClick={handleCompleteMedia}
-            disabled={isCompleting || isCompleted}
-            size="lg"
-            className="flex items-center gap-2"
-          >
-            <CheckCircle className="w-5 h-5" />
-            {isCompleted 
-              ? `${media.type === 'article' ? 'Article' : 'Video'} completed!`
-              : isCompleting 
-                ? 'Marking as complete...'
-                : `Mark as complete`
-            }
-          </Button>
-        </div>
       </div>
 
       <DictionaryPopup

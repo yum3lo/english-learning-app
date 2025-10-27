@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -26,7 +25,6 @@ const RegisterPage = () => {
     dateOfBirth: undefined as Date | undefined,
     cefrLevel: 'B2' as CEFRLevel,
     fieldsOfInterest: [] as string[],
-    aiDataConsent: false,
     createdAt: new Date().toISOString().split('T')[0]
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -102,10 +100,6 @@ const RegisterPage = () => {
       if (age < 13) {
         newErrors.dateOfBirth = 'You must be at least 13 years old';
       }
-    }
-    
-    if (!formData.aiDataConsent) {
-      newErrors.aiDataConsent = 'You must consent to AI data usage to create an account';
     }
     
     setErrors(newErrors);
@@ -343,37 +337,6 @@ const RegisterPage = () => {
                 {errors.fieldsOfInterest && (
                   <p className="mt-1 text-sm text-destructive">{errors.fieldsOfInterest}</p>
                 )}
-              </div>
-              
-              <div className="flex items-start space-x-2">
-                <Checkbox
-                  id="aiDataConsent"
-                  className={`mt-1 ${errors.aiDataConsent ? "border-destructive" : ""}`}
-                  checked={formData.aiDataConsent}
-                  onCheckedChange={(checked) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      aiDataConsent: !!checked
-                    }));
-                    if (errors.aiDataConsent) {
-                      setErrors(prev => ({
-                        ...prev,
-                        aiDataConsent: ''
-                      }));
-                    }
-                  }}
-                />
-                <div className="flex-1">
-                  <Label 
-                    htmlFor="aiDataConsent"
-                    className="text-sm font-normal cursor-pointer leading-relaxed"
-                  >
-                    I consent to AI using my data for the improvement of model accuracy and personalized learning experience <span className="text-destructive">*</span>
-                  </Label>
-                  {errors.aiDataConsent && (
-                    <p className="text-sm text-destructive mt-1">{errors.aiDataConsent}</p>
-                  )}
-                </div>
               </div>
             </div>
 

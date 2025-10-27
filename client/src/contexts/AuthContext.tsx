@@ -25,7 +25,6 @@ interface User {
   dateOfBirth?: string;
   cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
-  aiDataConsent: boolean;
   points: number;
   wordsLearned: number;
   articlesRead: number;
@@ -48,7 +47,6 @@ interface RegisterCredentials {
   dateOfBirth?: string;
   cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
-  aiDataConsent: boolean;
   createdAt: string;
 }
 
