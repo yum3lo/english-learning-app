@@ -71,8 +71,33 @@
   * {
     @apply border-border;
   }
+
+  html {
+    overflow-y: scroll;
+    width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
+    width: 100% !important;
+  }
+
+  ::-webkit-scrollbar {
+    width: 12px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 6px;
+    border: 2px solid hsl(var(--background));
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--secondary));
   }
 }
 
