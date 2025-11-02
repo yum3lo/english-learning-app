@@ -31,11 +31,6 @@ const Navbar = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
-  const handleLogout = () => {
-    logout();
-    window.location.reload();
-  }
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   }
@@ -104,7 +99,7 @@ const Navbar = () => {
                     </NavLink>
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    onClick={handleLogout}
+                    onClick={logout}
                     className="flex items-center gap-2 w-full cursor-pointer"
                   >
                     <LogOut className="h-4 w-4" />
@@ -195,7 +190,7 @@ const Navbar = () => {
                   variant="ghost"
                   className="w-full justify-start text-left"
                   onClick={() => {
-                    handleLogout();
+                    logout();
                     closeMobileMenu();
                   }}
                 >

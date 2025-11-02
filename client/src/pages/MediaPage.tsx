@@ -10,7 +10,8 @@ import InteractiveMarkdownRenderer from '@/components/InteractiveMarkdownRendere
 import DictionaryPopup from '@/components/DictionaryPopup';
 import { useToast } from '@/hooks/use-toast';
 import { useDictionary } from '@/hooks/useDictionary';
-import { mediaDataService, type UnifiedMediaItem } from '@/data/mediaData';
+import { mediaAPI } from '@/services/api';
+import type { UnifiedMediaItem } from '@/data/mediaData';
 import EmptyState from '@/components/EmptyState';
 
 const MediaPage = () => {
@@ -44,14 +45,18 @@ const MediaPage = () => {
 
       setLoading(true);
       try {
-        const foundMedia = mediaDataService.getMediaById(id);
+        const response = await mediaAPI.getById(id);
         
-        if (!foundMedia) {
-          navigate('/404');
-          return;
+        if (response.success && response.media) {
+          setMedia(response.media);
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Media not found",
+            description: "The requested content could not be found.",
+          });
+          navigate('/');
         }
-
-        setMedia(foundMedia);
       } catch (error) {
         toast({
           variant: "destructive",
@@ -64,7 +69,9 @@ const MediaPage = () => {
       }
     };
 
-    fetchMediaData();
+    if (user) {
+      fetchMediaData();
+    }
   }, [id, user, navigate, toast]);
 
   useEffect(() => {
@@ -84,8 +91,17 @@ const MediaPage = () => {
     try {
       await recordMediaCompleted(media.type, id);
       setIsCompleted(true);
+
+      toast({
+        title: "Progress updated!",
+        description: `${media.type === 'article' ? 'Article' : 'Video'} marked as complete. You earned 5 points!`,
+      });
     } catch (error) {
-      console.error('Failed to complete media:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to mark media as complete. Please try again.",
+      });
     } finally {
       setIsCompleting(false);
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Library, type LucideIcon } from 'lucide-react';
+import { Library, RefreshCcw, type LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import MediaCard, { type MediaItem } from '@/components/MediaCard';
 import {
   Carousel,
@@ -16,6 +17,9 @@ interface MediaCarouselProps {
   variant?: 'grid' | 'carousel';
   icon?: LucideIcon;
   showMobileIndicators?: boolean;
+  showLoadMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
 }
 
 const MediaCarousel = ({ 
@@ -23,7 +27,10 @@ const MediaCarousel = ({
   items, 
   variant = 'grid', 
   icon: Icon = Library,
-  showMobileIndicators = false 
+  showMobileIndicators = false,
+  showLoadMore = false,
+  isLoadingMore = false,
+  onLoadMore
 }: MediaCarouselProps) => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
@@ -50,6 +57,20 @@ const MediaCarousel = ({
             <Icon />
             {title}
           </h2>
+
+          <div className="flex items-center gap-3">
+            {showLoadMore && onLoadMore && (
+              <Button
+                size="sm"
+                onClick={onLoadMore}
+                disabled={isLoadingMore}
+                aria-label={isLoadingMore ? 'Loading more articles' : 'Load more articles'}
+              >
+                <RefreshCcw className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">{isLoadingMore ? 'Loading...' : 'Load more'}</span>
+              </Button>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -69,12 +90,14 @@ const MediaCarousel = ({
           {title}
         </h2>
 
-        {/* mobile scroll indicator */}
-        {showMobileIndicators && (
-          <div className="flex sm:hidden text-xs">
-            {current} / {count}
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {/* mobile scroll indicator */}
+          {showMobileIndicators && (
+            <div className="flex sm:hidden text-xs">
+              {current} / {count}
+            </div>
+          )}
+        </div>
       </div>
       
       <Carousel

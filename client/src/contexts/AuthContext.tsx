@@ -195,13 +195,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
-      
-      toast({
-        title: "Logged out successfully!",
-        description: "You have been logged out of your account.",
-      });
 
+      try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (!key) continue;
+          if (key.startsWith('flashcards_')) keysToRemove.push(key);
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+      } catch (err) {
+        console.warn('Error clearing flashcard session keys on logout', err);
+      }
+      
       setUser(null);
+      window.location.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -277,7 +285,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           ...user, 
           articlesRead: data.articlesRead,
           videosWatched: data.videosWatched,
-          points: data.points
+          points: data.points,
+          completedMedia: [
+            ...(user.completedMedia || []),
+            { mediaId, mediaType, completedAt: new Date() }
+          ]
         };
         setUser(updatedUser);
         localStorage.setItem('userData', JSON.stringify(updatedUser));

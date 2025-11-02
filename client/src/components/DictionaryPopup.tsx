@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Badge } from './ui/badge';
 import type { DictionaryEntry } from '@/types/dictionary';
 import PronunciationButton from './PronunciationButton';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface DictionaryPopupProps {
   word: string;
@@ -31,6 +32,13 @@ const DictionaryPopup = ({
   isLoading = false
 }: DictionaryPopupProps) => {
   if (!isOpen) return null;
+
+  const { user } = useAuth();
+  const alreadyLearned = Boolean(
+    user?.learnedWords?.some(w => (
+      w.word && dictionaryData?.word && w.word.toLowerCase() === dictionaryData.word.toLowerCase()
+    ))
+  );
 
   const handleAddToLearned = () => {
     if (!dictionaryData) return;
@@ -149,16 +157,18 @@ const DictionaryPopup = ({
                 ))}
               </div>
 
-              <div className="flex justify-center pt-4">
-                <Button 
-                  onClick={handleAddToLearned}
-                  disabled={isAddingToLearned}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  {isAddingToLearned ? 'Adding to learned...' : 'Add to learned words'}
-                </Button>
-              </div>
+              {!alreadyLearned && (
+                <div className="flex justify-center pt-4">
+                  <Button 
+                    onClick={handleAddToLearned}
+                    disabled={isAddingToLearned}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    {isAddingToLearned ? 'Adding to learned...' : 'Add to learned words'}
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </CardContent>
