@@ -1,6 +1,7 @@
 import type { DictionaryEntry } from '@/types/dictionary';
 
-const DICTIONARY_API_BASE = 'https://api.dictionaryapi.dev/api/v2/entries/en';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const DICTIONARY_API_BASE = `${API_BASE}/dictionary`;
 
 export class DictionaryService {
   static async getWordDefinition(word: string): Promise<DictionaryEntry[]> {
@@ -21,8 +22,10 @@ export class DictionaryService {
 
   static async getWordWithFallback(word: string): Promise<DictionaryEntry | null> {
     try {
-      const entries = await this.getWordDefinition(word);
-      return entries[0] || null;
+      const result = await this.getWordDefinition(word);
+      if ((result as any).entry) return (result as any).entry as DictionaryEntry;
+      if (Array.isArray(result) && result.length > 0) return result[0] as DictionaryEntry;
+      return null;
     } catch (error) {
       console.error('Failed to get word definition:', error);
       return null;
