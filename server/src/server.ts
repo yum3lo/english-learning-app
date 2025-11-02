@@ -2,13 +2,16 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import connectDB from './config/database';
+import './models/Vocabulary';
+import './models/Media';
+import './models/User';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
+import mediaRoutes from './routes/media';
+import dictionaryRoutes from './routes/dictionary';
 import { errorHandler } from './middleware/errorHandler';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -16,8 +19,21 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 app.use(helmet());
+const rawClientUrls = process.env.CLIENT_URL || '';
+const defaultOrigins = ['http://localhost:3000', 'http://localhost:5173'];
+const envOrigins = rawClientUrls
+  ? rawClientUrls.split(',').map(s => s.trim()).filter(Boolean)
+  : [];
+const allowedOrigins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS policy: Origin not allowed'), false);
+  },
   credentials: true
 }));
 
@@ -33,6 +49,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/dictionary', dictionaryRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 

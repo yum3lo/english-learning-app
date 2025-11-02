@@ -66,36 +66,4 @@ const vocabularyWordSchema = new Schema<IVocabularyWord>({
   timestamps: true
 });
 
-const userVocabularySchema = new Schema<IUserVocabulary>({
-  userId: {
-    type: String,
-    required: true,
-    index: true
-  },
-  wordId: {
-    type: Schema.Types.ObjectId,
-    ref: 'VocabularyWord',
-    required: true
-  },
-  mediaId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Media'
-  },
-  sentence: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  sentencePosition: {
-    type: Number,
-    min: 0
-  }
-}, {
-  timestamps: true
-});
-
-userVocabularySchema.index({ userId: 1, wordId: 1 }, { unique: true });
-userVocabularySchema.index({ userId: 1, createdAt: -1 });
-
 export const VocabularyWord = mongoose.model<IVocabularyWord>('VocabularyWord', vocabularyWordSchema);
-export const UserVocabulary = mongoose.model<IUserVocabulary>('UserVocabulary', userVocabularySchema);

@@ -11,6 +11,11 @@ export interface IMedia extends Document {
   description?: string;
   duration?: number;
   transcription?: string;
+  content?: {
+    content?: string;
+    videoUrl?: string;
+    transcript?: string;
+  };
   cefrLevel: CEFRLevel;
   categories: string[];
   vocabularyWords: mongoose.Types.ObjectId[];
@@ -55,6 +60,11 @@ const mediaSchema = new Schema<IMedia>({
   transcription: {
     type: String,
     trim: true
+  },
+  content: {
+    content: { type: String, trim: true },
+    videoUrl: { type: String, trim: true },
+    transcript: { type: String, trim: true }
   },
   cefrLevel: {
     type: String,
