@@ -5,7 +5,7 @@ import ClickableText from './ClickableText';
 
 interface VocabularyCardProps {
   vocabulary: VocabularyItem;
-  onWordClick?: (word: string) => void;
+  onWordClick?: (word: string, sentence?: string) => void;
 }
 
 const VocabularyCard = ({ vocabulary, onWordClick }: VocabularyCardProps) => {
@@ -40,7 +40,7 @@ const VocabularyCard = ({ vocabulary, onWordClick }: VocabularyCardProps) => {
           <span className="font-medium">Definition:</span> <ClickableText text={vocabulary.definition} onWordClick={onWordClick} />
         </p>
         <p className="text-sm">
-          <span className="font-medium">Example:</span> <em>"<ClickableText text={vocabulary.example} onWordClick={onWordClick} />"</em>
+          <span className="font-medium">Example in text:</span> <em>"<ClickableText text={vocabulary.exampleInText || (vocabulary.example || 'No example available')} onWordClick={onWordClick} />"</em>
         </p>
       </CardContent>
     </Card>

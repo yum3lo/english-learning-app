@@ -7,6 +7,7 @@ export interface LearnedWord {
   definition: string;
   partOfSpeech: string;
   example?: string;
+  exampleInText?: string;
   pronunciation?: string;
   learnedAt: Date;
 }
@@ -101,6 +102,7 @@ const userSchema = new Schema<IUser>({
       required: true
     },
     example: String,
+    exampleInText: String,
     pronunciation: String,
     learnedAt: {
       type: Date,

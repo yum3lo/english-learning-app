@@ -8,7 +8,7 @@ interface VideoPlayerProps {
   videoUrl: string;
   title: string;
   transcript?: string;
-  onWordClick?: (word: string) => void;
+  onWordClick?: (word: string, sentence?: string) => void;
 }
 
 const VideoPlayer = ({ videoUrl, title, transcript, onWordClick }: VideoPlayerProps) => {

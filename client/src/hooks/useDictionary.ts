@@ -13,9 +13,11 @@ export const useDictionary = () => {
   const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
   const [isLoadingDictionary, setIsLoadingDictionary] = useState(false);
   const [isAddingToLearned, setIsAddingToLearned] = useState(false);
+  const [encounteredSentence, setEncounteredSentence] = useState<string | null>(null);
 
-  const handleWordClick = async (word: string) => {
+  const handleWordClick = async (word: string, sentence?: string) => {
     setSelectedWord(word);
+    setEncounteredSentence(sentence || null);
     setIsDictionaryOpen(true);
     setIsLoadingDictionary(true);
     setDictionaryData(null);
@@ -44,8 +46,14 @@ export const useDictionary = () => {
   }) => {
     try {
       setIsAddingToLearned(true);
-      await addLearnedWord(wordData);
+      const payload = {
+        ...wordData,
+        exampleInText: encounteredSentence || undefined
+      };
+
+      await addLearnedWord(payload);
       setIsDictionaryOpen(false);
+      setEncounteredSentence(null);
     } finally {
       setIsAddingToLearned(false);
     }
@@ -55,6 +63,7 @@ export const useDictionary = () => {
     setIsDictionaryOpen(false);
     setDictionaryData(null);
     setSelectedWord('');
+    setEncounteredSentence(null);
   };
 
   return {

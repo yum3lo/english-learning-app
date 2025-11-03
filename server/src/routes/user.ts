@@ -294,7 +294,7 @@ router.post('/learned-word',
         return;
       }
 
-      const { word, definition, partOfSpeech, example, pronunciation } = req.body;
+      const { word, definition, partOfSpeech, example, exampleInText, pronunciation } = req.body;
       const existingWord = user.learnedWords.find(w => w.word.toLowerCase() === word.toLowerCase());
       if (existingWord) {
         res.status(400).json({
@@ -309,6 +309,7 @@ router.post('/learned-word',
         definition,
         partOfSpeech,
         example,
+        exampleInText,
         pronunciation,
         learnedAt: new Date()
       });

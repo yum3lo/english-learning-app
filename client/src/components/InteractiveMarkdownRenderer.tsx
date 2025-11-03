@@ -5,7 +5,7 @@ import ClickableText from './ClickableText';
 interface InteractiveMarkdownRendererProps {
   content: string;
   className?: string;
-  onWordClick?: (word: string) => void;
+  onWordClick?: (word: string, sentence?: string) => void;
 }
 
 const InteractiveMarkdownRenderer = ({ 

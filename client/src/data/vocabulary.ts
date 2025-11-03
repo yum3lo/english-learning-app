@@ -4,7 +4,8 @@ export interface VocabularyItem {
   word: string;
   definition: string;
   partOfSpeech: string;
-  example: string;
+  example?: string;
+  exampleInText?: string;
   pronunciation: string;
   cefrLevel: CEFRLevel;
 }
@@ -17,6 +18,7 @@ export const convertLearnedWordsToVocabulary = (learnedWords: {
   definition: string;
   partOfSpeech: string;
   example?: string;
+  exampleInText?: string;
   pronunciation?: string;
   learnedAt: Date;
 }[]): VocabularyItem[] => {
@@ -24,7 +26,8 @@ export const convertLearnedWordsToVocabulary = (learnedWords: {
     word: word.word,
     definition: word.definition,
     partOfSpeech: word.partOfSpeech,
-    example: word.example || 'No example available',
+    example: word.example || undefined,
+    exampleInText: word.exampleInText || undefined,
     pronunciation: word.pronunciation || 'No pronunciation available',
     cefrLevel: 'B2' as CEFRLevel
   }));
