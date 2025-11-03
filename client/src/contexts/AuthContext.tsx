@@ -120,16 +120,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const data = await response.json();
-      
       localStorage.setItem('authToken', data.token);
-      localStorage.setItem('userData', JSON.stringify(data.user));
-      
+
+      const profileResponse = await fetch('/api/users/profile', {
+        headers: {
+          'Authorization': `Bearer ${data.token}`
+        }
+      });
+
+      if (!profileResponse.ok) {
+        localStorage.removeItem('authToken');
+        throw new Error('Failed to fetch user profile');
+      }
+
+      const profileData = await profileResponse.json();
+      localStorage.setItem('userData', JSON.stringify(profileData.user));
+      setUser(profileData.user);
+
       toast({
         title: "Logged in successfully!",
         description: "Welcome back to your profile.",
       });
-
-      setUser(data.user);
     } catch (error) {
       console.error('Login error:', error);
       
@@ -193,25 +204,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = (): void => {
     try {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-
-      try {
-        const keysToRemove: string[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (!key) continue;
-          if (key.startsWith('flashcards_')) keysToRemove.push(key);
-        }
-        keysToRemove.forEach(k => localStorage.removeItem(k));
-      } catch (err) {
-        console.warn('Error clearing flashcard session keys on logout', err);
-      }
-      
+      localStorage.clear();
       setUser(null);
       window.location.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
+      window.location.replace('/login');
     }
   };
 
@@ -340,11 +338,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
       
       if (user) {
+        const returnedLearnedWord = data.learnedWord || {};
+        if ((!returnedLearnedWord.exampleInText || returnedLearnedWord.exampleInText === '') && (wordData as any).exampleInText) {
+          returnedLearnedWord.exampleInText = (wordData as any).exampleInText;
+        }
+        if ((!returnedLearnedWord.example || returnedLearnedWord.example === '') && wordData.example) {
+          returnedLearnedWord.example = wordData.example;
+        }
+
         const updatedUser = { 
           ...user, 
           wordsLearned: data.wordsLearned,
           points: data.points,
-          learnedWords: [...(user.learnedWords || []), data.learnedWord]
+          learnedWords: [...(user.learnedWords || []), returnedLearnedWord]
         };
         setUser(updatedUser);
         localStorage.setItem('userData', JSON.stringify(updatedUser));
