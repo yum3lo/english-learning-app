@@ -85,18 +85,19 @@ const MediaPage = () => {
   }, [media, id, user]);
 
   const handleCompleteMedia = async () => {
-    if (!media || !id || isCompleted) return;
+    if (!media || !id || isCompleted || isCompleting) return;
 
     setIsCompleting(true);
+    setIsCompleted(true);
     try {
       await recordMediaCompleted(media.type, id);
-      setIsCompleted(true);
 
       toast({
         title: "Progress updated!",
         description: `${media.type === 'article' ? 'Article' : 'Video'} marked as complete. You earned 5 points!`,
       });
     } catch (error) {
+      setIsCompleted(false);
       toast({
         variant: "destructive",
         title: "Error",
