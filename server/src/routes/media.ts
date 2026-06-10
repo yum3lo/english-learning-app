@@ -4,6 +4,7 @@ import Media from '../models/Media';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import guardianService from '../api/guardianAPI';
 import { CATEGORIES } from '../constants/categories';
+import { classifyTextWithOpenAI } from '../services/cefrClassificationService';
 
 const router = express.Router();
 
@@ -15,11 +16,9 @@ const stripHtml = (html?: string) => {
 const mapMediaForClient = (mediaDoc: any): any => {
   const contentObj: any = {};
   if (mediaDoc.content && (mediaDoc.content.content || mediaDoc.content.videoUrl || mediaDoc.content.transcript)) {
-    contentObj.content = mediaDoc.content.content;
-    contentObj.videoUrl = mediaDoc.content.videoUrl;
-    contentObj.transcript = mediaDoc.content.transcript ? stripHtml(mediaDoc.content.transcript) : undefined;
-  } else if (mediaDoc.transcription) {
-    contentObj.content = stripHtml(mediaDoc.transcription);
+    if (mediaDoc.content.content) contentObj.content = mediaDoc.content.content;
+    if (mediaDoc.content.videoUrl) contentObj.videoUrl = mediaDoc.content.videoUrl;
+    if (mediaDoc.content.transcript) contentObj.transcript = stripHtml(mediaDoc.content.transcript);
   }
 
   return {
@@ -91,7 +90,7 @@ router.get('/recommendations',
       const recommendations = await Media.find(query)
         .sort({ createdAt: -1 })
         .limit(limit)
-        .select('-transcription -vocabularyWords');
+        .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
@@ -162,11 +161,22 @@ router.get('/guardian/fetch',
             source: article.source || 'The Guardian',
             description: article.description,
             content: { content: article.content },
-            cefrLevel: 'B2',
+            cefrLevel: 'UNCLASSIFIED',
             categories: article.categories || []
           });
 
           savedArticles.push(mapMediaForClient(doc.toObject()));
+
+          // classifying in background if content is sufficient
+          classifyTextWithOpenAI(plainBody)
+            .then(result => {
+              Media.findByIdAndUpdate(doc._id, { cefrLevel: result.level }).catch(err => {
+                console.error('Error updating CEFR level:', err);
+              });
+            })
+            .catch(err => {
+              console.error('Error classifying article:', err);
+            });
         } catch (err) {
           console.error('Error saving Guardian article to DB:', err);
         }
@@ -236,7 +246,7 @@ router.get('/feed',
       const feedItems = await Media.find(query)
         .sort({ createdAt: -1 })
         .limit(limit)
-        .select('-transcription -vocabularyWords');
+        .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
@@ -326,7 +336,7 @@ router.get('/search',
 
       const results = await Media.find(query)
         .limit(20)
-        .select('-transcription -vocabularyWords');
+        .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
@@ -377,7 +387,7 @@ router.get('/category/:category',
       })
         .sort({ createdAt: -1 })
         .limit(20)
-        .select('-transcription -vocabularyWords');
+        .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
@@ -394,5 +404,70 @@ router.get('/category/:category',
     }
   }
 );
+
+// @route   POST /api/media/videos/add-with-transcript
+// @desc    Add a video with transcript and classify it
+// @access  Private
+router.post('/videos/add-with-transcript', [
+  authenticate,
+  body('title').notEmpty().withMessage('Title is required'),
+  body('url').notEmpty().withMessage('URL is required'),
+  body('transcript').optional().isString().withMessage('Transcript must be a string'),
+], async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+      return;
+    }
+
+    const { title, url, source, description, thumbnail, transcript, categories } = req.body;
+
+    // video with transcript
+    const doc = await Media.create({
+      title,
+      type: 'video',
+      url,
+      source: source || 'YouTube',
+      description,
+      thumbnailUrl: thumbnail,
+      content: {
+        transcript: transcript || '',
+        videoUrl: url
+      },
+      cefrLevel: 'UNCLASSIFIED',
+      categories: categories || []
+    });
+
+    // classifying in background if transcript is provided
+    if (transcript && transcript.trim().length > 0) {
+      classifyTextWithOpenAI(transcript)
+        .then(result => {
+          Media.findByIdAndUpdate(doc._id, { cefrLevel: result.level }).catch(err => {
+            console.error('Error updating CEFR level:', err);
+          });
+        })
+        .catch(err => {
+          console.error('Error classifying video:', err);
+        });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Video added successfully' + (transcript ? ' and queued for classification' : ''),
+      media: mapMediaForClient(doc.toObject())
+    });
+  } catch (error) {
+    console.error('Add video error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error adding video'
+    });
+  }
+});
 
 export default router;

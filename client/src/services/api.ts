@@ -68,12 +68,33 @@ export const mediaAPI = {
     const response = await api.get('/media/guardian/fetch', { params });
     return response.data;
   },
+  addVideoWithTranscript: async (videoData: {
+    title: string;
+    url: string;
+    source?: string;
+    description?: string;
+    thumbnail?: string;
+    transcript?: string;
+    categories?: string[];
+  }) => {
+    const response = await api.post('/media/videos/add-with-transcript', videoData);
+    return response.data;
+  },
 };
 
 export const userAPI = {
   getProfile: async () => {
-    const response = await api.get('/users/profile');
-    return response.data;
+    try {
+      const response = await api.get('/users/profile');
+      return response.data;
+    } catch (error: any) {
+      if (error.response && (error.response.status === 404 || error.response.status === 401)) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+        window.location.href = '/login';
+      }
+      throw error;
+    }
   },
 
   updateProfile: async (data: { name?: string; email?: string }) => {
@@ -89,13 +110,7 @@ export const userAPI = {
     return response.data;
   },
 
-  addLearnedWord: async (wordData: {
-    word: string;
-    definition: string;
-    partOfSpeech: string;
-    example?: string;
-    pronunciation?: string;
-  }) => {
+  addLearnedWord: async (wordData: { wordId: string; exampleInText?: string }) => {
     const response = await api.post('/users/learned-word', wordData);
     return response.data;
   },
@@ -136,6 +151,23 @@ export const syncAPI = {
     articlesPerCategory?: number;
   }) => {
     const response = await api.post('/sync/trigger', params);
+    return response.data;
+  },
+};
+
+export const cefrAPI = {
+  classifyMedia: async (mediaId: string) => {
+    const response = await api.post('/cefr/classify-media', { mediaId });
+    return response.data;
+  },
+
+  classifyAll: async () => {
+    const response = await api.post('/cefr/classify-all');
+    return response.data;
+  },
+
+  getStatus: async () => {
+    const response = await api.get('/cefr/status');
     return response.data;
   },
 };

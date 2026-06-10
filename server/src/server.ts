@@ -11,6 +11,7 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/user';
 import mediaRoutes from './routes/media';
 import dictionaryRoutes from './routes/dictionary';
+import cefrRoutes from './routes/cefr';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/dictionary', dictionaryRoutes);
+app.use('/api/cefr', cefrRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
