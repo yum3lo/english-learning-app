@@ -23,22 +23,37 @@ const ReadingPage = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   useEffect(() => {
-    const fetchArticles = async () => {
+    const fetchArticles = async (tryGuardianIfEmpty = true) => {
       setLoading(true);
       try {
         const response = await mediaAPI.getRecommendations({
           type: 'article',
           limit: 20
-        })
-
+        });
         if (response.success) {
           const articles = response.recommendations;
+          if (articles.length === 0 && tryGuardianIfEmpty) {
+            const guardianResp = await mediaAPI.fetchGuardianArticles({ limit: 10 });
+            if (guardianResp?.success && guardianResp.articles && guardianResp.articles.length > 0) {
+              await fetchArticles(false);
+              toast({
+                title: `${guardianResp.articles.length} new articles added`,
+                description: 'New articles fetched.',
+              });
+              return;
+            } else {
+              toast({
+                title: 'No articles available',
+                description: 'No articles could be fetched.',
+              });
+            }
+          }
           const sortedByDate = [...articles].sort((a, b) => 
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
-          
+
           setNewest(sortedByDate.slice(0, 6));
-          setAll(articles);          
+          setAll(articles);
         } else {
           throw new Error('Failed to fetch articles');
         }
