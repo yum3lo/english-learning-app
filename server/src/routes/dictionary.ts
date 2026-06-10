@@ -19,6 +19,7 @@ router.get('/:word', async (req, res) => {
     const local = await VocabularyWord.findOne({ word: key }).lean();
     if (local) {
       const entry = {
+        _id: local._id,
         word: local.word,
         phonetic: local.phonetic,
         phonetics: local.phonetic ? [{ text: local.phonetic }] : [],
@@ -53,11 +54,12 @@ router.get('/:word', async (req, res) => {
 
     const fetched = data[0];
 
+    let savedId: string | undefined;
     try {
       const firstMeaning = fetched.meanings?.[0];
       const firstDef = firstMeaning?.definitions?.[0];
 
-      await VocabularyWord.create({
+      const created = await VocabularyWord.create({
         word: key,
         definition: firstDef?.definition || (fetched.meanings?.[0]?.definitions?.[0]?.definition || 'No definition available'),
         phonetic: fetched.phonetic || fetched.phonetics?.[0]?.text || undefined,
@@ -67,11 +69,15 @@ router.get('/:word', async (req, res) => {
         synonyms: firstDef?.synonyms || [],
         antonyms: firstDef?.antonyms || []
       });
+      savedId = created._id.toString();
     } catch (err: any) {
       console.warn('Could not save dictionary word locally:', (err && err.message) ? err.message : err);
+      // another request may have created it concurrently - look it up so the client still gets a wordId
+      const existing = await VocabularyWord.findOne({ word: key }).lean();
+      savedId = existing?._id?.toString();
     }
 
-    res.status(200).json({ success: true, entry: fetched });
+    res.status(200).json({ success: true, entry: { ...fetched, _id: savedId } });
   } catch (error: any) {
     console.error('Dictionary lookup error:', error?.message || error);
     res.status(500).json({ success: false, message: 'Dictionary lookup failed' });

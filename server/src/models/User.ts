@@ -3,12 +3,8 @@ import bcrypt from 'bcryptjs';
 import { CATEGORIES, CEFR_LEVELS, CEFRLevel } from '../constants/categories';
 
 export interface LearnedWord {
-  word: string;
-  definition: string;
-  partOfSpeech: string;
-  example?: string;
+  wordId: mongoose.Types.ObjectId;
   exampleInText?: string;
-  pronunciation?: string;
   learnedAt: Date;
 }
 
@@ -89,21 +85,12 @@ const userSchema = new Schema<IUser>({
     default: 0
   },
   learnedWords: [{
-    word: {
-      type: String,
+    wordId: {
+      type: Schema.Types.ObjectId,
+      ref: 'VocabularyWord',
       required: true
     },
-    definition: {
-      type: String,
-      required: true
-    },
-    partOfSpeech: {
-      type: String,
-      required: true
-    },
-    example: String,
     exampleInText: String,
-    pronunciation: String,
     learnedAt: {
       type: Date,
       default: Date.now

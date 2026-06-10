@@ -11,13 +11,7 @@ interface DictionaryPopupProps {
   dictionaryData: DictionaryEntry | null;
   isOpen: boolean;
   onClose: () => void;
-  onAddToLearned: (wordData: {
-    word: string;
-    definition: string;
-    partOfSpeech: string;
-    example?: string;
-    pronunciation?: string;
-  }) => void;
+  onAddToLearned: (wordData: { wordId: string }) => void;
   isAddingToLearned?: boolean;
   isLoading?: boolean;
 }
@@ -36,25 +30,13 @@ const DictionaryPopup = ({
   const { user } = useAuth();
   const alreadyLearned = Boolean(
     user?.learnedWords?.some(w => (
-      w.word && dictionaryData?.word && w.word.toLowerCase() === dictionaryData.word.toLowerCase()
+      w.wordId && dictionaryData?.word && w.wordId.word.toLowerCase() === dictionaryData.word.toLowerCase()
     ))
   );
 
   const handleAddToLearned = () => {
-    if (!dictionaryData) return;
-    
-    const firstMeaning = dictionaryData.meanings[0];
-    const firstDefinition = firstMeaning?.definitions[0];
-    
-    const wordData = {
-      word: dictionaryData.word,
-      definition: firstDefinition?.definition || 'No definition available',
-      partOfSpeech: firstMeaning?.partOfSpeech || 'unknown',
-      example: firstDefinition?.example,
-      pronunciation: dictionaryData.phonetic || dictionaryData.phonetics[0]?.text
-    };
-    
-    onAddToLearned(wordData);
+    if (!dictionaryData?._id) return;
+    onAddToLearned({ wordId: dictionaryData._id });
   };
 
   return (
@@ -157,7 +139,7 @@ const DictionaryPopup = ({
                 ))}
               </div>
 
-              {!alreadyLearned && (
+              {!alreadyLearned && dictionaryData._id && (
                 <div className="flex justify-center pt-4">
                   <Button 
                     onClick={handleAddToLearned}

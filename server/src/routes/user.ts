@@ -10,15 +10,20 @@ const router = express.Router();
 // @access  Private
 router.get('/profile', authenticate, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
-    const user = req.user;
-    if (!user) {
+    const userId = req.user?._id;
+    if (!userId) {
       res.status(401).json({
         success: false,
         message: 'User not found'
       });
       return;
     }
-
+    
+    const user = await User.findById(userId).populate('learnedWords.wordId');
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
     res.status(200).json({
       success: true,
       user: {
@@ -266,12 +271,11 @@ router.post('/progress/media-completed', [
 // @route   POST /api/users/learned-word
 // @desc    Add a word to user's learned words
 // @access  Private
-router.post('/learned-word', 
+router.post('/learned-word',
   authenticate,
   [
-    body('word').notEmpty().withMessage('Word is required'),
-    body('definition').notEmpty().withMessage('Definition is required'),
-    body('partOfSpeech').notEmpty().withMessage('Part of speech is required')
+    body('wordId').isMongoId().withMessage('A valid wordId is required'),
+    body('exampleInText').optional().isString().withMessage('exampleInText must be a string')
   ],
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -294,35 +298,32 @@ router.post('/learned-word',
         return;
       }
 
-      const { word, definition, partOfSpeech, example, exampleInText, pronunciation } = req.body;
-      const existingWord = user.learnedWords.find(w => w.word.toLowerCase() === word.toLowerCase());
-      if (existingWord) {
+      const { wordId, exampleInText } = req.body;
+
+      const alreadyLearned = user.learnedWords.some(w => w.wordId.toString() === wordId);
+      if (alreadyLearned) {
         res.status(400).json({
           success: false,
           message: 'Word already exists in learned words'
         });
         return;
       }
-
       user.learnedWords.push({
-        word,
-        definition,
-        partOfSpeech,
-        example,
+        wordId,
         exampleInText,
-        pronunciation,
         learnedAt: new Date()
       });
-
       user.wordsLearned += 1;
       await user.save();
 
+      await user.populate('learnedWords.wordId');
+      const lastLearned = user.learnedWords[user.learnedWords.length - 1];
       res.status(200).json({
         success: true,
         message: 'Word added to learned words',
         wordsLearned: user.wordsLearned,
         points: user.points,
-        learnedWord: user.learnedWords[user.learnedWords.length - 1]
+        learnedWord: lastLearned
       });
     } catch (error) {
       console.error('Add learned word error:', error);

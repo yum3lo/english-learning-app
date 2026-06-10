@@ -16,18 +16,10 @@ export interface DictionaryMeaning {
 }
 
 export interface DictionaryEntry {
+  _id?: string;
   word: string;
   phonetic?: string;
   phonetics: DictionaryPhonetic[];
   origin?: string;
   meanings: DictionaryMeaning[];
-}
-
-export interface LearnedWord {
-  word: string;
-  definition: string;
-  partOfSpeech: string;
-  example?: string;
-  pronunciation?: string;
-  learnedAt: Date;
 }

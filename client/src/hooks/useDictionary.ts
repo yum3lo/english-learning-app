@@ -37,17 +37,11 @@ export const useDictionary = () => {
     }
   };
 
-  const handleAddToLearned = async (wordData: {
-    word: string;
-    definition: string;
-    partOfSpeech: string;
-    example?: string;
-    pronunciation?: string;
-  }) => {
+  const handleAddToLearned = async (wordData: { wordId: string }) => {
     try {
       setIsAddingToLearned(true);
       const payload = {
-        ...wordData,
+        wordId: wordData.wordId,
         exampleInText: encounteredSentence || undefined
       };
 

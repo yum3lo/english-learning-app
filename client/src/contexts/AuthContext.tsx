@@ -3,12 +3,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CEFRLevel } from '@/constants/categories';
 
+import type { PopulatedVocabularyWord } from '@/data/vocabulary';
 interface LearnedWord {
-  word: string;
-  definition: string;
-  partOfSpeech: string;
-  example?: string;
-  pronunciation?: string;
+  wordId: PopulatedVocabularyWord;
+  exampleInText?: string;
   learnedAt: Date;
 }
 
@@ -62,11 +60,8 @@ interface AuthContextType {
   recordWordLearned: () => Promise<void>;
   recordMediaCompleted: (mediaType: 'article' | 'video', mediaId: string) => Promise<void>;
   addLearnedWord: (wordData: {
-    word: string;
-    definition: string;
-    partOfSpeech: string;
-    example?: string;
-    pronunciation?: string;
+    wordId: string;
+    exampleInText?: string;
   }) => Promise<void>;
 }
 
@@ -309,11 +304,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const addLearnedWord = async (wordData: {
-    word: string;
-    definition: string;
-    partOfSpeech: string;
-    example?: string;
-    pronunciation?: string;
+    wordId: string;
+    exampleInText?: string;
   }) => {
     try {
       const token = localStorage.getItem('authToken');
@@ -336,18 +328,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       const data = await response.json();
-      
-      if (user) {
-        const returnedLearnedWord = data.learnedWord || {};
-        if ((!returnedLearnedWord.exampleInText || returnedLearnedWord.exampleInText === '') && (wordData as any).exampleInText) {
-          returnedLearnedWord.exampleInText = (wordData as any).exampleInText;
-        }
-        if ((!returnedLearnedWord.example || returnedLearnedWord.example === '') && wordData.example) {
-          returnedLearnedWord.example = wordData.example;
-        }
+      const returnedLearnedWord: LearnedWord = data.learnedWord;
 
-        const updatedUser = { 
-          ...user, 
+      if (user) {
+        const updatedUser = {
+          ...user,
           wordsLearned: data.wordsLearned,
           points: data.points,
           learnedWords: [...(user.learnedWords || []), returnedLearnedWord]
@@ -358,7 +343,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       toast({
         title: "Word learned!",
-        description: `Great job! You've learned "${wordData.word}".`,
+        description: `Great job! You've learned "${returnedLearnedWord.wordId.word}".`,
       });
     } catch (error) {
       console.error('Add learned word error:', error);

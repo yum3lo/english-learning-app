@@ -10,25 +10,34 @@ export interface VocabularyItem {
   cefrLevel: CEFRLevel;
 }
 
+// shape of a populated VocabularyWord doc (server/src/models/Vocabulary.ts)
+export interface PopulatedVocabularyWord {
+  _id: string;
+  word: string;
+  definition: string;
+  phonetic?: string;
+  partOfSpeech: string;
+  exampleSentences?: string[];
+  synonyms?: string[];
+  antonyms?: string[];
+  cefrLevel: CEFRLevel;
+}
+
 export const vocabularyData: Record<string, VocabularyItem[]> = {};
 
 // converting learned words to vocabulary items
 export const convertLearnedWordsToVocabulary = (learnedWords: {
-  word: string;
-  definition: string;
-  partOfSpeech: string;
-  example?: string;
+  wordId: PopulatedVocabularyWord;
   exampleInText?: string;
-  pronunciation?: string;
   learnedAt: Date;
 }[]): VocabularyItem[] => {
-  return learnedWords.map(word => ({
-    word: word.word,
-    definition: word.definition,
-    partOfSpeech: word.partOfSpeech,
-    example: word.example || undefined,
-    exampleInText: word.exampleInText || undefined,
-    pronunciation: word.pronunciation || 'No pronunciation available',
-    cefrLevel: 'B2' as CEFRLevel
+  return learnedWords.map(lw => ({
+    word: lw.wordId.word,
+    definition: lw.wordId.definition,
+    partOfSpeech: lw.wordId.partOfSpeech,
+    example: lw.wordId.exampleSentences?.[0],
+    exampleInText: lw.exampleInText,
+    pronunciation: lw.wordId.phonetic || 'No pronunciation available',
+    cefrLevel: lw.wordId.cefrLevel,
   }));
 };
