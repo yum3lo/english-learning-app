@@ -23,7 +23,7 @@ export const errorHandler = (
   }
 
   // Mongoose duplicate key
-  if (err.name === 'MongoError' && (err as any).code === 11000) {
+  if ((err.name === 'MongoServerError' || err.name === 'MongoError') && (err as any).code === 11000) {
     const message = 'Duplicate field value entered';
     error = { ...error, message, statusCode: 400 };
   }
