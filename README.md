@@ -83,6 +83,9 @@ The app features a special welcome experience for my mom, complete with personal
 
      # Optional: minimum character length of Guardian article plain text to persist
      GUARDIAN_MIN_CONTENT_LENGTH=1200
+
+     # OpenAI API key (required for CEFR classification)
+     OPENAI_API_KEY=sk-your_openai_api_key_here
      ```
 
    - `client/.env`:
@@ -122,7 +125,7 @@ The app features a special welcome experience for my mom, complete with personal
 
 ## External APIs
 
-This project uses two (for now) external APIs.
+This project uses three (for now) external APIs.
 
 ### The Guardian Content API 
 
@@ -145,3 +148,48 @@ This project uses two (for now) external APIs.
 - Notes:
    - Cached canonical data is stored with a default CEFR level till AI processing of text will be implemented.
    - External dictionary API usage is rate-limited by the external service, caching reduces repeated traffic.
+
+### OpenAI API
+
+- Available at: https://platform.openai.com
+- Used to automatically classify article and video transcript text into a CEFR level.
+- Required server environment variable: `OPENAI_API_KEY` (set in `server/.env`). Get a key from https://platform.openai.com/api-keys.
+- Model used: `gpt-4o-mini`, with a low temperature (0.2) for consistent results.
+
+## CEFR Classification
+
+Articles and video transcripts are automatically classified into a CEFR level using the OpenAI API.
+
+### Supported levels
+
+`UNCLASSIFIED`, `B1`, `B2`, `C1`, `C2`. The classifier only places content into B1 and above — anything that reads as simpler (e.g. beginner/elementary text) is mapped to `B1`, the lowest level the app supports.
+
+### How it works
+
+- **Articles**: when new articles are fetched from The Guardian (`GET /api/media/guardian/fetch`), each is saved immediately with `cefrLevel: 'UNCLASSIFIED'` so the request doesn't have to wait. Classification then runs in the background, and the article's `cefrLevel` is updated once OpenAI responds.
+- **Videos**: `POST /api/media/videos/add-with-transcript` saves a video with `cefrLevel: 'UNCLASSIFIED'` and, if a transcript is provided, kicks off the same background classification.
+- If classification fails for any reason (missing `OPENAI_API_KEY`, API error, rate limit, etc.), the item is left as `UNCLASSIFIED` and can be retried later via the endpoints below.
+
+### API endpoints (authenticated)
+
+- `POST /api/cefr/classify-media` — classify a single media item by `mediaId`.
+- `POST /api/cefr/classify-all` — classify every `UNCLASSIFIED` media item sequentially, with a short delay between calls to avoid OpenAI rate limits.
+- `GET /api/cefr/status` — returns counts of total/classified/unclassified media items.
+
+### Client usage
+
+```typescript
+import { cefrAPI, mediaAPI } from '@/services/api';
+
+// Add a video with a transcript - queued for background classification automatically
+await mediaAPI.addVideoWithTranscript({ title, url, transcript, categories });
+
+// Manually (re-)classify a specific item
+await cefrAPI.classifyMedia(mediaId);
+
+// Classify everything still UNCLASSIFIED
+await cefrAPI.classifyAll();
+
+// Check progress
+const status = await cefrAPI.getStatus();
+```
