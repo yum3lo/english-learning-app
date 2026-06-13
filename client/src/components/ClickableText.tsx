@@ -5,6 +5,8 @@ interface ClickableTextProps {
 }
 
 const ClickableText = ({ text, onWordClick, className = '' }: ClickableTextProps) => {
+  const MAX_SENTENCE_HALF_LENGTH = 150;
+
   const getSurroundingSentence = (fullText: string, index: number) => {
     if (!fullText) return '';
     const before = fullText.slice(0, index);
@@ -13,8 +15,17 @@ const ClickableText = ({ text, onWordClick, className = '' }: ClickableTextProps
     const startMatch = before.match(/([\.!?]\s|\n|^)([^\n]*)$/);
     const endMatch = after.match(/^([^\n]*?)([\.!?]\s|\n|$)/);
 
-    const start = startMatch ? startMatch[2] || '' : before;
-    const end = endMatch ? endMatch[1] || '' : after;
+    let start = startMatch ? startMatch[2] || '' : before;
+    let end = endMatch ? endMatch[1] || '' : after;
+
+    // fall back to a word window around the clicked word when no sentence boundary
+    // was found (e.g. unpunctuated transcripts), so the example isn't the entire text
+    if (start.length > MAX_SENTENCE_HALF_LENGTH) {
+      start = start.slice(-MAX_SENTENCE_HALF_LENGTH).replace(/^\S*\s/, '');
+    }
+    if (end.length > MAX_SENTENCE_HALF_LENGTH) {
+      end = end.slice(0, MAX_SENTENCE_HALF_LENGTH).replace(/\s\S*$/, '');
+    }
 
     const sentence = (start + end).trim();
     return sentence;

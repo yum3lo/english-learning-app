@@ -11,8 +11,13 @@ import DictionaryPopup from '@/components/DictionaryPopup';
 import { useToast } from '@/hooks/use-toast';
 import { useDictionary } from '@/hooks/useDictionary';
 import { mediaAPI } from '@/services/api';
-import type { UnifiedMediaItem } from '@/data/mediaData';
+import mediaDataService, { type UnifiedMediaItem } from '@/data/mediaData';
 import EmptyState from '@/components/EmptyState';
+import { formatDuration } from '@/constants/categories';
+
+const isObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value);
+
+const DESCRIPTION_PREVIEW_LENGTH = 200;
 
 const MediaPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +29,7 @@ const MediaPage = () => {
   const [loading, setLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   
   const {
     selectedWord,
@@ -45,8 +51,24 @@ const MediaPage = () => {
 
       setLoading(true);
       try {
+        if (!isObjectId(id)) {
+          // mock/demo content (e.g. sample videos) isn't stored in the database
+          const localMedia = mediaDataService.getMediaById(id);
+          if (localMedia) {
+            setMedia(localMedia);
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Media not found",
+              description: "The requested content could not be found.",
+            });
+            navigate('/');
+          }
+          return;
+        }
+
         const response = await mediaAPI.getById(id);
-        
+
         if (response.success && response.media) {
           setMedia(response.media);
         } else {
@@ -108,10 +130,6 @@ const MediaPage = () => {
     }
   };
 
-  const formatDuration = (duration: string) => {
-    return duration;
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -168,7 +186,18 @@ const MediaPage = () => {
           </div>
 
           {media.description && (
-            <p className="mb-4">{media.description}</p>
+            <div className="mb-4">
+              <p className={showFullDescription ? '' : 'line-clamp-3'}>{media.description}</p>
+              {media.description.length > DESCRIPTION_PREVIEW_LENGTH && (
+                <Button
+                  variant="link"
+                  className="h-auto px-0"
+                  onClick={() => setShowFullDescription(prev => !prev)}
+                >
+                  {showFullDescription ? 'Show less' : 'Show more'}
+                </Button>
+              )}
+            </div>
           )}
 
           <div className="flex flex-wrap gap-2">
@@ -183,11 +212,11 @@ const MediaPage = () => {
           {media.type === 'article' ? 'Article Content' : 'Video Content'}
         </h2>
         
-        {media.type === 'video' && media.content?.videoUrl ? (
+        {media.type === 'video' && (media.content?.videoUrl || media.url) ? (
           <VideoPlayer
-            videoUrl={media.content.videoUrl}
+            videoUrl={media.content?.videoUrl || media.url}
             title={media.title}
-            transcript={media.content.transcript}
+            transcript={media.content?.transcript}
             onWordClick={handleWordClick}
           />
         ) : media.content?.content ? (
