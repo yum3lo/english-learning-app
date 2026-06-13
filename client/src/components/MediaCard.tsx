@@ -9,6 +9,7 @@ import {
   CardFooter 
 } from '@/components/ui/card';
 import { type MediaItem } from '@/data/mediaData';
+import { formatDuration } from '@/constants/categories';
 
 interface MediaCardProps {
   item: MediaItem;
@@ -49,7 +50,7 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
             </div>
             {item.duration && (
               <div className='absolute bottom-2 right-2 bg-muted px-2 py-1 rounded text-xs'>
-                {item.duration}
+                {formatDuration(item.duration)}
               </div>
             )}
           </div>

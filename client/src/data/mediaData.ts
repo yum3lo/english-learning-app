@@ -14,7 +14,7 @@ export interface MediaItem {
   imageUrl?: string;
   cefrLevel: CEFRLevel;
   categories: string[];
-  duration?: string;
+  duration?: string | number;
   createdAt: string;
 }
 

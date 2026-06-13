@@ -6,6 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -68,6 +69,11 @@ export const mediaAPI = {
     const response = await api.get('/media/guardian/fetch', { params });
     return response.data;
   },
+  fetchYoutubeVideos: async (params?: { category?: string; limit?: number }) => {
+    // formatting and classifying each new video via OpenAI can take a while, so allow more time
+    const response = await api.get('/media/youtube/fetch', { params, timeout: 120000 });
+    return response.data;
+  },
   addVideoWithTranscript: async (videoData: {
     title: string;
     url: string;
@@ -121,7 +127,6 @@ export const authAPI = {
     name: string;
     email: string;
     password: string;
-    dateOfBirth: string;
     cefrLevel: CEFRLevel;
     fieldsOfInterest: string[];
     consentAI: boolean;
