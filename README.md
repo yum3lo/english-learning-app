@@ -86,6 +86,9 @@ The app features a special welcome experience for my mom, complete with personal
 
      # OpenAI API key (required for CEFR classification)
      OPENAI_API_KEY=sk-your_openai_api_key_here
+
+     # YouTube Data API key (required for fetching videos)
+     YOUTUBE_API_KEY=your_youtube_api_key_here
      ```
 
    - `client/.env`:
@@ -125,7 +128,7 @@ The app features a special welcome experience for my mom, complete with personal
 
 ## External APIs
 
-This project uses three (for now) external APIs.
+This project uses four (for now) external APIs.
 
 ### The Guardian Content API 
 
@@ -156,6 +159,22 @@ This project uses three (for now) external APIs.
 - Required server environment variable: `OPENAI_API_KEY` (set in `server/.env`). Get a key from https://platform.openai.com/api-keys.
 - Model used: `gpt-4o-mini`, with a low temperature (0.2) for consistent results.
 
+### YouTube Data API
+
+- Available at: https://console.cloud.google.com (enable the "YouTube Data API v3" for your project)
+- Fetches videos with closed captions, matching one of the app's categories, for listening practice.
+- Required server environment variable: `YOUTUBE_API_KEY` (set in `server/.env`). Get a key from the Google Cloud Console credentials page.
+- Typical request pattern (server side):
+   - `search.list` (`part=snippet`, `type=video`, `q=<category search terms>`, `videoCaption=closedCaption`, `relevanceLanguage=en`, `safeSearch=moderate`) to find candidate videos.
+   - `videos.list` (`part=contentDetails`) to read each video's ISO 8601 duration.
+- Notes:
+   - The server's public endpoint to trigger a fetch of new videos is (authenticated): `GET /api/media/youtube/fetch`.
+      - With a `category` query param, it searches that category only.
+      - Without one, it fetches a diverse mix across the requesting user's `fieldsOfInterest` (up to 5 categories, falling back to `General` if none are set).
+      - Either way, only unseen videos (by URL) are persisted to the `media` collection.
+   - Transcripts are best-effort: the server tries to download the video's auto-generated captions (via the `youtube-transcript` package) and stores the plain text alongside the video. Not every video has captions available, so some videos may be saved without a transcript.
+   - Auto-generated captions have no punctuation or paragraph breaks, so before saving, the server uses the OpenAI API to add punctuation, capitalization, and paragraph breaks to the transcript (without changing any words). If this formatting step fails, the raw (unpunctuated) transcript is saved instead.
+
 ## CEFR Classification
 
 Articles and video transcripts are automatically classified into a CEFR level using the OpenAI API.
@@ -166,9 +185,9 @@ Articles and video transcripts are automatically classified into a CEFR level us
 
 ### How it works
 
-- **Articles**: when new articles are fetched from The Guardian (`GET /api/media/guardian/fetch`), each is saved immediately with `cefrLevel: 'UNCLASSIFIED'` so the request doesn't have to wait. Classification then runs in the background, and the article's `cefrLevel` is updated once OpenAI responds.
-- **Videos**: `POST /api/media/videos/add-with-transcript` saves a video with `cefrLevel: 'UNCLASSIFIED'` and, if a transcript is provided, kicks off the same background classification.
-- If classification fails for any reason (missing `OPENAI_API_KEY`, API error, rate limit, etc.), the item is left as `UNCLASSIFIED` and can be retried later via the endpoints below.
+- **Articles**: when new articles are fetched from The Guardian (`GET /api/media/guardian/fetch`), each is classified by OpenAI *before* it's saved, so the `cefrLevel` returned to the client is already correct (no refresh needed).
+- **Videos**: when new videos are fetched from YouTube (`GET /api/media/youtube/fetch`), each is classified (using its transcript, falling back to the description/title if no transcript is available) before being saved. Videos can also be added directly via `POST /api/media/videos/add-with-transcript`, which classifies the provided transcript the same way before saving.
+- If classification fails for any reason (missing `OPENAI_API_KEY`, API error, rate limit, etc.), the item is saved as `UNCLASSIFIED` and can be retried later via the endpoints below.
 
 ### API endpoints (authenticated)
 
@@ -181,7 +200,10 @@ Articles and video transcripts are automatically classified into a CEFR level us
 ```typescript
 import { cefrAPI, mediaAPI } from '@/services/api';
 
-// Add a video with a transcript - queued for background classification automatically
+// Fetch fresh videos from YouTube for a category - classified before being saved/returned
+await mediaAPI.fetchYoutubeVideos({ category: 'Science', limit: 10 });
+
+// Add a video with a transcript - classified before being saved/returned
 await mediaAPI.addVideoWithTranscript({ title, url, transcript, categories });
 
 // Manually (re-)classify a specific item
