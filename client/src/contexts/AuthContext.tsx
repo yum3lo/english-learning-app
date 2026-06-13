@@ -20,7 +20,6 @@ interface User {
   id: string;
   email: string;
   name: string;
-  dateOfBirth?: string;
   cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
   points: number;
@@ -42,7 +41,6 @@ interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword: string;
-  dateOfBirth?: string;
   cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
   createdAt: string;

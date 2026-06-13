@@ -273,14 +273,6 @@ const ProfilePage = () => {
                   {user.cefrLevel}
                 </Badge>
               </div>
-              {user.dateOfBirth && (
-                <div>
-                  <p className="text-sm">Date of Birth</p>
-                  <p className="text-sm font-medium mt-1">
-                    {formatDate(user.dateOfBirth)}
-                  </p>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

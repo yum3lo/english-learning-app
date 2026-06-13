@@ -38,7 +38,7 @@ router.post('/register', [
       return;
     }
 
-    const { name, email, password, dateOfBirth, cefrLevel, fieldsOfInterest } = req.body;
+    const { name, email, password, cefrLevel, fieldsOfInterest } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -53,7 +53,6 @@ router.post('/register', [
       name,
       email,
       password,
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
       cefrLevel: cefrLevel || 'B2',
       fieldsOfInterest: fieldsOfInterest || []
     });
@@ -70,7 +69,6 @@ router.post('/register', [
         id: user._id,
         name: user.name,
         email: user.email,
-        dateOfBirth: user.dateOfBirth,
         cefrLevel: user.cefrLevel,
         fieldsOfInterest: user.fieldsOfInterest,
         points: user.points,
@@ -141,7 +139,6 @@ router.post('/login', [
         id: user._id,
         name: user.name,
         email: user.email,
-        dateOfBirth: user.dateOfBirth,
         cefrLevel: user.cefrLevel,
         fieldsOfInterest: user.fieldsOfInterest,
         points: user.points,

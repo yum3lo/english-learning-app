@@ -9,12 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
 import { CATEGORIES, CEFR_LEVELS, type CEFRLevel } from '@/constants/categories';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -22,7 +17,6 @@ const RegisterPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    dateOfBirth: undefined as Date | undefined,
     cefrLevel: 'B2' as CEFRLevel,
     fieldsOfInterest: [] as string[],
     createdAt: new Date().toISOString().split('T')[0]
@@ -93,15 +87,7 @@ const RegisterPage = () => {
     } else    if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
-    
-    if (formData.dateOfBirth) {
-      const today = new Date();
-      const age = today.getFullYear() - formData.dateOfBirth.getFullYear();
-      if (age < 13) {
-        newErrors.dateOfBirth = 'You must be at least 13 years old';
-      }
-    }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -116,12 +102,7 @@ const RegisterPage = () => {
     setIsLoading(true);
     
     try {
-      // converting Date to string for API
-      const submitData = {
-        ...formData,
-        dateOfBirth: formData.dateOfBirth ? formData.dateOfBirth.toISOString().split('T')[0] : undefined
-      };
-      await register(submitData);
+      await register(formData);
       
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
@@ -243,49 +224,6 @@ const RegisterPage = () => {
                 />
                 {errors.confirmPassword && (
                   <p className="text-sm text-destructive mt-1">{errors.confirmPassword}</p>
-                )}
-              </div>
-              
-              <div>
-                <Label>Date of Birth</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !formData.dateOfBirth && errors.dateOfBirth && "border-destructive"
-                      )}
-                    >
-                      <CalendarIcon className="h-4 w-4" />
-                      {formData.dateOfBirth ? format(formData.dateOfBirth, "PPP") : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.dateOfBirth}
-                      onSelect={(date) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          dateOfBirth: date
-                        }));
-                        if (errors.dateOfBirth) {
-                          setErrors(prev => ({
-                            ...prev,
-                            dateOfBirth: ''
-                          }));
-                        }
-                      }}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      captionLayout='dropdown'
-                    />
-                  </PopoverContent>
-                </Popover>
-                {errors.dateOfBirth && (
-                  <p className="text-sm text-destructive mt-1">{errors.dateOfBirth}</p>
                 )}
               </div>
               

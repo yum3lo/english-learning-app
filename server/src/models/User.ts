@@ -19,7 +19,6 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  dateOfBirth?: Date;
   cefrLevel: CEFRLevel;
   fieldsOfInterest: string[];
   points: number;
@@ -54,10 +53,6 @@ const userSchema = new Schema<IUser>({
     required: [true, 'Password is required'],
     minlength: [6, 'Password must be at least 6 characters long'],
     select: false
-  },
-  dateOfBirth: {
-    type: Date,
-    required: false
   },
   cefrLevel: {
     type: String,
