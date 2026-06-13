@@ -50,7 +50,7 @@ const mediaSchema = new Schema<IMedia>({
   description: {
     type: String,
     trim: true,
-    maxlength: [1000, 'Description cannot exceed 1000 characters']
+    maxlength: [5000, 'Description cannot exceed 5000 characters']
   },
   duration: {
     type: Number,

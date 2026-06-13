@@ -3,15 +3,13 @@ import { body, query, validationResult } from 'express-validator';
 import Media from '../models/Media';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import guardianService from '../api/guardianAPI';
-import { CATEGORIES } from '../constants/categories';
+import youtubeService from '../api/youtubeAPI';
+import { CATEGORIES, CEFRLevel } from '../constants/categories';
 import { classifyTextWithOpenAI } from '../services/cefrClassificationService';
+import { formatTranscriptWithOpenAI } from '../services/transcriptFormattingService';
+import { stripHtml, decodeHtmlEntities } from '../utils/text';
 
 const router = express.Router();
-
-const stripHtml = (html?: string) => {
-  if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').trim();
-};
 
 const mapMediaForClient = (mediaDoc: any): any => {
   const contentObj: any = {};
@@ -23,7 +21,7 @@ const mapMediaForClient = (mediaDoc: any): any => {
 
   return {
     _id: mediaDoc._id,
-    title: mediaDoc.title,
+    title: decodeHtmlEntities(mediaDoc.title),
     type: mediaDoc.type,
     url: mediaDoc.url,
     source: mediaDoc.source,
@@ -153,6 +151,15 @@ router.get('/guardian/fetch',
             continue;
           }
 
+          // classifying before saving so the client never sees a stale UNCLASSIFIED card
+          let cefrLevel: CEFRLevel = 'UNCLASSIFIED';
+          try {
+            const result = await classifyTextWithOpenAI(plainBody);
+            cefrLevel = result.level;
+          } catch (err) {
+            console.error('Error classifying article:', err);
+          }
+
           const doc = await Media.create({
             title: article.title,
             type: 'article',
@@ -161,22 +168,11 @@ router.get('/guardian/fetch',
             source: article.source || 'The Guardian',
             description: article.description,
             content: { content: article.content },
-            cefrLevel: 'UNCLASSIFIED',
+            cefrLevel,
             categories: article.categories || []
           });
 
           savedArticles.push(mapMediaForClient(doc.toObject()));
-
-          // classifying in background if content is sufficient
-          classifyTextWithOpenAI(plainBody)
-            .then(result => {
-              Media.findByIdAndUpdate(doc._id, { cefrLevel: result.level }).catch(err => {
-                console.error('Error updating CEFR level:', err);
-              });
-            })
-            .catch(err => {
-              console.error('Error classifying article:', err);
-            });
         } catch (err) {
           console.error('Error saving Guardian article to DB:', err);
         }
@@ -193,6 +189,106 @@ router.get('/guardian/fetch',
       res.status(500).json({
         success: false,
         message: 'Error fetching articles from Guardian API'
+      });
+    }
+  }
+);
+
+// @route   GET /api/media/youtube/fetch
+// @desc    Fetch fresh videos from YouTube
+// @access  Private
+router.get('/youtube/fetch',
+  authenticate,
+  [
+    query('category').optional().isIn(CATEGORIES).withMessage('Invalid category'),
+    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
+  ],
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const category = req.query.category as string | undefined;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const user = req.user;
+      const videos = category
+        ? await youtubeService.searchVideos(category, limit)
+        : await youtubeService.getRecommendedVideos(user?.fieldsOfInterest || [], limit);
+
+      const fetchedUrls = videos.map(v => v.url).filter(Boolean);
+      const existing = await Media.find({ url: { $in: fetchedUrls } }).select('url');
+      const existingUrls = new Set(existing.map(e => e.url));
+
+      const newVideos = videos.filter(v => v.url && !existingUrls.has(v.url));
+
+      // processing videos concurrently - each one needs a transcript fetch plus
+      // two OpenAI calls (formatting + classification), which is slow done sequentially
+      const savedVideoResults = await Promise.all(newVideos.map(async (video) => {
+        try {
+          const videoId = video.url.split('v=')[1];
+          let transcript = videoId ? await youtubeService.fetchTranscriptText(videoId) : undefined;
+
+          // auto-generated captions have no punctuation/paragraphs, so reformat for readability
+          // and so sentence-based features (e.g. "example in text") work correctly
+          if (transcript) {
+            try {
+              transcript = await formatTranscriptWithOpenAI(transcript);
+            } catch (err) {
+              console.error('Error formatting transcript:', err);
+            }
+          }
+
+          // classifying before saving so the client never sees a stale UNCLASSIFIED card
+          let cefrLevel: CEFRLevel = 'UNCLASSIFIED';
+          try {
+            const textToClassify = transcript || video.description || video.title;
+            const result = await classifyTextWithOpenAI(textToClassify);
+            cefrLevel = result.level;
+          } catch (err) {
+            console.error('Error classifying video:', err);
+          }
+
+          const doc = await Media.create({
+            title: video.title,
+            type: 'video',
+            url: video.url,
+            thumbnailUrl: video.thumbnailUrl,
+            source: video.source || 'YouTube',
+            description: video.description,
+            duration: video.duration,
+            content: { videoUrl: video.url, transcript },
+            cefrLevel,
+            categories: video.categories
+          });
+
+          return mapMediaForClient(doc.toObject());
+        } catch (err) {
+          console.error('Error saving YouTube video to DB:', err);
+          return null;
+        }
+      }));
+
+      const savedVideos = savedVideoResults.filter((v): v is NonNullable<typeof v> => v !== null);
+
+      res.status(200).json({
+        success: true,
+        count: savedVideos.length,
+        videos: savedVideos,
+        message: 'New videos fetched from YouTube API and saved to database'
+      });
+    } catch (error) {
+      console.error('YouTube fetch error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching videos from YouTube API'
       });
     }
   }
@@ -427,6 +523,17 @@ router.post('/videos/add-with-transcript', [
 
     const { title, url, source, description, thumbnail, transcript, categories } = req.body;
 
+    // classifying before saving so the client never sees a stale UNCLASSIFIED card
+    let cefrLevel: CEFRLevel = 'UNCLASSIFIED';
+    if (transcript && transcript.trim().length > 0) {
+      try {
+        const result = await classifyTextWithOpenAI(transcript);
+        cefrLevel = result.level;
+      } catch (err) {
+        console.error('Error classifying video:', err);
+      }
+    }
+
     // video with transcript
     const doc = await Media.create({
       title,
@@ -439,26 +546,13 @@ router.post('/videos/add-with-transcript', [
         transcript: transcript || '',
         videoUrl: url
       },
-      cefrLevel: 'UNCLASSIFIED',
+      cefrLevel,
       categories: categories || []
     });
 
-    // classifying in background if transcript is provided
-    if (transcript && transcript.trim().length > 0) {
-      classifyTextWithOpenAI(transcript)
-        .then(result => {
-          Media.findByIdAndUpdate(doc._id, { cefrLevel: result.level }).catch(err => {
-            console.error('Error updating CEFR level:', err);
-          });
-        })
-        .catch(err => {
-          console.error('Error classifying video:', err);
-        });
-    }
-
     res.status(201).json({
       success: true,
-      message: 'Video added successfully' + (transcript ? ' and queued for classification' : ''),
+      message: 'Video added successfully' + (transcript ? ' and classified' : ''),
       media: mapMediaForClient(doc.toObject())
     });
   } catch (error) {

@@ -1,5 +1,6 @@
 export const CATEGORIES = [
   'General',
+  'Language',
   'Economy',
   'Environment',
   'Politics',
