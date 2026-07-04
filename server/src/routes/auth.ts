@@ -75,6 +75,8 @@ router.post('/register', [
         wordsLearned: user.wordsLearned,
         articlesRead: user.articlesRead,
         videosWatched: user.videosWatched,
+        streakCount: user.streakCount,
+        lastStreakDate: user.lastStreakDate,
         createdAt: user.createdAt
       }
     });
@@ -145,6 +147,8 @@ router.post('/login', [
         wordsLearned: user.wordsLearned,
         articlesRead: user.articlesRead,
         videosWatched: user.videosWatched,
+        streakCount: user.streakCount,
+        lastStreakDate: user.lastStreakDate,
         createdAt: user.createdAt
       }
     });

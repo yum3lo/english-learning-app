@@ -1,11 +1,18 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { CATEGORIES, CEFR_LEVELS, CEFRLevel } from '../constants/categories';
+import { stripTime, Stage } from '../utils/spacedRepetition';
 
 export interface LearnedWord {
   wordId: mongoose.Types.ObjectId;
   exampleInText?: string;
   learnedAt: Date;
+  interval: number;
+  repetitions: number;
+  easeFactor: number;
+  nextReviewDate: Date;
+  lastReviewedAt?: Date;
+  stage: Stage;
 }
 
 export interface CompletedMedia {
@@ -27,6 +34,8 @@ export interface IUser extends Document {
   videosWatched: number;
   learnedWords: LearnedWord[];
   completedMedia: CompletedMedia[];
+  streakCount: number;
+  lastStreakDate: Date | null;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -89,6 +98,30 @@ const userSchema = new Schema<IUser>({
     learnedAt: {
       type: Date,
       default: Date.now
+    },
+    interval: {
+      type: Number,
+      default: 0
+    },
+    repetitions: {
+      type: Number,
+      default: 0
+    },
+    easeFactor: {
+      type: Number,
+      default: 2.5
+    },
+    nextReviewDate: {
+      type: Date,
+      default: () => stripTime(new Date())
+    },
+    lastReviewedAt: {
+      type: Date
+    },
+    stage: {
+      type: String,
+      enum: ['seedling', 'growing', 'bloomed'],
+      default: 'seedling'
     }
   }],
   completedMedia: [{
@@ -105,7 +138,15 @@ const userSchema = new Schema<IUser>({
       type: Date,
       default: Date.now
     }
-  }]
+  }],
+  streakCount: {
+    type: Number,
+    default: 0
+  },
+  lastStreakDate: {
+    type: Date,
+    default: null
+  }
 }, {
   timestamps: true
 });

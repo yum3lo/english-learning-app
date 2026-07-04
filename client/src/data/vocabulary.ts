@@ -1,5 +1,7 @@
 import type { CEFRLevel } from '@/constants/categories';
 
+export type MasteryStage = 'seedling' | 'growing' | 'bloomed';
+
 export interface VocabularyItem {
   word: string;
   definition: string;
@@ -8,6 +10,13 @@ export interface VocabularyItem {
   exampleInText?: string;
   pronunciation: string;
   cefrLevel: CEFRLevel;
+  wordId: string;
+  interval: number;
+  repetitions: number;
+  easeFactor: number;
+  nextReviewDate: string;
+  lastReviewedAt?: string;
+  stage: MasteryStage;
 }
 
 // shape of a populated VocabularyWord doc (server/src/models/Vocabulary.ts)
@@ -30,6 +39,12 @@ export const convertLearnedWordsToVocabulary = (learnedWords: {
   wordId: PopulatedVocabularyWord;
   exampleInText?: string;
   learnedAt: Date;
+  interval?: number;
+  repetitions?: number;
+  easeFactor?: number;
+  nextReviewDate?: string;
+  lastReviewedAt?: string;
+  stage?: MasteryStage;
 }[]): VocabularyItem[] => {
   return learnedWords.map(lw => ({
     word: lw.wordId.word,
@@ -39,5 +54,12 @@ export const convertLearnedWordsToVocabulary = (learnedWords: {
     exampleInText: lw.exampleInText,
     pronunciation: lw.wordId.phonetic || 'No pronunciation available',
     cefrLevel: lw.wordId.cefrLevel,
+    wordId: lw.wordId._id,
+    interval: lw.interval ?? 0,
+    repetitions: lw.repetitions ?? 0,
+    easeFactor: lw.easeFactor ?? 2.5,
+    nextReviewDate: lw.nextReviewDate ?? new Date().toISOString(),
+    lastReviewedAt: lw.lastReviewedAt,
+    stage: lw.stage ?? 'seedling',
   }));
 };

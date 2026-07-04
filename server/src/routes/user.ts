@@ -1,7 +1,8 @@
 import express, { Response } from 'express';
-import { body, validationResult } from 'express-validator';
+import { body, param, validationResult } from 'express-validator';
 import User from '../models/User';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
+import { reviewWord, stripTime, DEFAULT_SRS_FIELDS } from '../utils/spacedRepetition';
 
 const router = express.Router();
 
@@ -38,6 +39,8 @@ router.get('/profile', authenticate, async (req: AuthenticatedRequest, res: Resp
         videosWatched: user.videosWatched,
         learnedWords: user.learnedWords,
         completedMedia: user.completedMedia,
+        streakCount: user.streakCount,
+        lastStreakDate: user.lastStreakDate,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
       }
@@ -309,7 +312,10 @@ router.post('/learned-word',
       user.learnedWords.push({
         wordId,
         exampleInText,
-        learnedAt: new Date()
+        learnedAt: new Date(),
+        ...DEFAULT_SRS_FIELDS,
+        nextReviewDate: stripTime(new Date()),
+        stage: 'seedling'
       });
       user.wordsLearned += 1;
       await user.save();
@@ -328,6 +334,104 @@ router.post('/learned-word',
       res.status(500).json({
         success: false,
         message: 'Server error adding learned word'
+      });
+    }
+  }
+);
+
+// @route   PATCH /api/users/learned-word/:wordId/review
+// @desc    Submit a flashcard review for a learned word, advancing its SRS state
+// @access  Private
+router.patch('/learned-word/:wordId/review',
+  authenticate,
+  [
+    param('wordId').isMongoId().withMessage('A valid wordId is required'),
+    body('quality').isInt({ min: 0, max: 5 }).withMessage('quality must be an integer between 0 and 5')
+  ],
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
+        return;
+      }
+
+      const { wordId } = req.params;
+      const { quality } = req.body;
+
+      const learnedWord = user.learnedWords.find(w => w.wordId.toString() === wordId);
+      if (!learnedWord) {
+        res.status(404).json({
+          success: false,
+          message: 'Word not found in learned words'
+        });
+        return;
+      }
+
+      const result = reviewWord({
+        interval: learnedWord.interval ?? 0,
+        repetitions: learnedWord.repetitions ?? 0,
+        easeFactor: learnedWord.easeFactor ?? 2.5
+      }, quality);
+
+      learnedWord.interval = result.interval;
+      learnedWord.repetitions = result.repetitions;
+      learnedWord.easeFactor = result.easeFactor;
+      learnedWord.nextReviewDate = result.nextReviewDate;
+      learnedWord.lastReviewedAt = result.lastReviewedAt;
+      learnedWord.stage = result.stage;
+
+      if (quality >= 3) {
+        user.points += 1;
+      }
+
+      const todayDateOnly = stripTime(new Date());
+      if (!user.lastStreakDate) {
+        user.streakCount = 1;
+      } else {
+        const diffDays = Math.round((todayDateOnly.getTime() - stripTime(user.lastStreakDate).getTime()) / 86400000);
+        if (diffDays === 1) {
+          user.streakCount += 1;
+        } else if (diffDays > 1) {
+          user.streakCount = 1;
+        }
+        // diffDays <= 0 (user already reviewed today) does not change streakCount
+      }
+      user.lastStreakDate = todayDateOnly;
+
+      const learnedWordId = (learnedWord as any)._id;
+
+      await user.save();
+      await user.populate('learnedWords.wordId');
+
+      const updatedLearnedWord = (user.learnedWords as any).id(learnedWordId);
+
+      res.status(200).json({
+        success: true,
+        message: 'Review recorded',
+        learnedWord: updatedLearnedWord,
+        points: user.points,
+        streakCount: user.streakCount,
+        lastStreakDate: user.lastStreakDate
+      });
+    } catch (error) {
+      console.error('Review learned word error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error recording review'
       });
     }
   }

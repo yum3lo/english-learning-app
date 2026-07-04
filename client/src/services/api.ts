@@ -120,6 +120,11 @@ export const userAPI = {
     const response = await api.post('/users/learned-word', wordData);
     return response.data;
   },
+
+  reviewWord: async (wordId: string, quality: number) => {
+    const response = await api.patch(`/users/learned-word/${wordId}/review`, { quality });
+    return response.data;
+  },
 };
 
 export const authAPI = {

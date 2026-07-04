@@ -2,12 +2,19 @@ import { useToast } from '@/hooks/use-toast';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CEFRLevel } from '@/constants/categories';
+import { userAPI } from '@/services/api';
 
-import type { PopulatedVocabularyWord } from '@/data/vocabulary';
+import type { PopulatedVocabularyWord, MasteryStage } from '@/data/vocabulary';
 interface LearnedWord {
   wordId: PopulatedVocabularyWord;
   exampleInText?: string;
   learnedAt: Date;
+  interval: number;
+  repetitions: number;
+  easeFactor: number;
+  nextReviewDate: string;
+  lastReviewedAt?: string;
+  stage: MasteryStage;
 }
 
 interface CompletedMedia {
@@ -28,6 +35,8 @@ interface User {
   videosWatched: number;
   learnedWords: LearnedWord[];
   completedMedia: CompletedMedia[];
+  streakCount: number;
+  lastStreakDate: string | null;
   createdAt: string;
 }
 
@@ -61,6 +70,7 @@ interface AuthContextType {
     wordId: string;
     exampleInText?: string;
   }) => Promise<void>;
+  reviewWord: (wordId: string, quality: number) => Promise<{ stage: MasteryStage }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -354,6 +364,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const reviewWord = async (wordId: string, quality: number): Promise<{ stage: MasteryStage }> => {
+    try {
+      const data = await userAPI.reviewWord(wordId, quality);
+      const updatedLearnedWord: LearnedWord = data.learnedWord;
+
+      if (user) {
+        const updatedLearnedWords = user.learnedWords.map(lw =>
+          lw.wordId._id === wordId ? updatedLearnedWord : lw
+        );
+        const updatedUser = {
+          ...user,
+          learnedWords: updatedLearnedWords,
+          points: data.points,
+          streakCount: data.streakCount,
+          lastStreakDate: data.lastStreakDate,
+        };
+        setUser(updatedUser);
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+
+      return { stage: updatedLearnedWord.stage };
+    } catch (error) {
+      console.error('Review word error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Couldn't save your progress. Please try again.",
+      });
+      throw error;
+    }
+  };
+
   const deleteAccount = async (): Promise<void> => {
     try {
       const token = localStorage.getItem('authToken');
@@ -406,6 +448,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     recordWordLearned,
     recordMediaCompleted,
     addLearnedWord,
+    reviewWord,
   };
 
   return (
