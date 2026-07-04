@@ -9,16 +9,20 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Poppins',
+  				'Nunito',
   				'sans-serif'
   			],
   			serif: [
-  				'Lora',
+  				'Fraunces',
   				'serif'
+  			],
+  			mono: [
+  				'JetBrains Mono',
+  				'monospace'
   			]
   		},
   		gridTemplateColumns: {
-  			'70/30': '70% 28%'
+  			'70/30': '70% 30%'
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -46,6 +50,10 @@ export default {
   			accent: {
   				DEFAULT: 'hsl(var(--accent))',
   				foreground: 'hsl(var(--accent-foreground))'
+  			},
+  			bloom: {
+  				DEFAULT: 'hsl(var(--bloom))',
+  				foreground: 'hsl(var(--bloom-foreground))'
   			},
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',
@@ -80,7 +88,7 @@ export default {
         },
         'h1': {
           fontSize: theme('fontSize.xl'),
-          fontWeight: theme('fontWeight.bold'),
+          fontWeight: theme('fontWeight.medium'),
           '@screen sm': { fontSize: theme('fontSize.2xl') },
           '@screen md': { fontSize: theme('fontSize.3xl') },
           fontFamily: theme('fontFamily.serif'),
@@ -88,14 +96,14 @@ export default {
         },
         'h2': {
           fontSize: theme('fontSize.lg'),
-          fontWeight: theme('fontWeight.semibold'),
+          fontWeight: theme('fontWeight.medium'),
           '@screen sm': { fontSize: theme('fontSize.xl') },
           '@screen md': { fontSize: theme('fontSize.2xl') },
           fontFamily: theme('fontFamily.serif'),
 					lineHeight: theme('lineHeight.normal')
         },
         'h3': {
-          fontSize: theme('fontSize.md'),
+          fontSize: theme('fontSize.base'),
           fontWeight: theme('fontWeight.medium'),
           '@screen sm': { fontSize: theme('fontSize.lg') },
           '@screen md': { fontSize: theme('fontSize.xl') },
@@ -105,7 +113,7 @@ export default {
 				'h4': {
 					fontSize: theme('fontSize.sm'),
 					fontWeight: theme('fontWeight.medium'),
-					'@screen sm': { fontSize: theme('fontSize.md') },
+					'@screen sm': { fontSize: theme('fontSize.base') },
 					'@screen md': { fontSize: theme('fontSize.lg') },
 					fontFamily: theme('fontFamily.serif'),
 					lineHeight: theme('lineHeight.normal')

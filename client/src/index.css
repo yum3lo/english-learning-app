@@ -29,41 +29,39 @@
   }
 }
 
-.preloader-pulse {
-  animation: pulse 2s infinite;
-}
-
 .animate-bounce-in {
   animation: bounce-in 0.6s ease-out;
 }
 
 @layer base {
   :root {
-    --background: 48 50% 96%; /* beige #fafaef */
-    --foreground: 353 84% 15%; /* bordo #460c16 */
-    --card: 48 50% 96%; /* beige */
-    --card-foreground: 353 84% 15%; /* bordo */
-    --popover: 48 50% 96%; /* beige */
-    --popover-foreground: 353 84% 15%; /* bordo */
-    --primary: 0 41% 53%; /* coral #bc4e4e */
-    --primary-foreground: 48 50% 96%; /* beige */
-    --secondary: 63 37% 57%; /* citron #babd61 */
-    --secondary-foreground: 353 84% 15%; /* bordo */
-    --muted: 61 41% 76%; /* green #e0e1b7 */
-    --muted-foreground: 353 84% 15%; /* bordo */
-    --accent: 63 37% 57%; /* citron */
-    --accent-foreground: 353 84% 15%; /* bordo */
+    --background: 38 52% 96%; /* cream #FAF6EF */
+    --foreground: 85 19% 17%; /* bark #2E3524 */
+    --card: 0 0% 100%; /* white #FFFFFF */
+    --card-foreground: 85 19% 17%; /* bark */
+    --popover: 0 0% 100%; /* white */
+    --popover-foreground: 85 19% 17%; /* bark */
+    --primary: 93 22% 24%; /* forest #3B4A2F */
+    --primary-foreground: 38 52% 96%; /* cream */
+    --secondary: 93 29% 43%; /* sage #6B8F4E */
+    --secondary-foreground: 0 0% 100%; /* white */
+    --muted: 41 35% 89%; /* stone #EDE7DA */
+    --muted-foreground: 47 9% 40%; /* moss-gray #6E6A5C */
+    --accent: 18 51% 57%; /* terracotta #C97B5A */
+    --accent-foreground: 0 0% 100%; /* white */
     --destructive: 350 68% 29%; /* red #7a1526 */
-    --destructive-foreground: 48 50% 96%; /* beige */
-    --border: 61 41% 76%; /* green */
-    --input: 61 41% 76%; /* green */
-    --ring: 0 41% 53%; /* coral */
-    --chart-1: 0 41% 53%; /* coral */
-    --chart-2: 63 37% 57%; /* citron */
-    --chart-3: 61 41% 76%; /* green */
-    --chart-4: 350 68% 29%; /* red */
-    --chart-5: 353 84% 15%; /* bordo */
-    --radius: 0.5rem;
+    --destructive-foreground: 36 28% 93%; /* ivory */
+    --border: 41 35% 89%; /* stone */
+    --input: 41 35% 89%; /* stone */
+    --ring: 93 22% 24%; /* forest */
+    --bloom: 341 35% 45%; /* bloom #9B4A63 */
+    --bloom-foreground: 0 0% 100%; /* white */
+    --chart-1: 93 22% 24%; /* forest */
+    --chart-2: 93 29% 43%; /* sage */
+    --chart-3: 18 51% 57%; /* terracotta */
+    --chart-4: 341 35% 45%; /* bloom */
+    --chart-5: 85 19% 17%; /* bark */
+    --radius: 0.75rem;
   }
 }
 
@@ -104,6 +102,34 @@
 @layer utilities {
   .border-primary-50 {
     border-color: hsl(var(--primary) / 0.1);
+  }
+
+  .section-px {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  .btn-md {
+    @apply px-4 py-2 text-sm sm:text-base;
+  }
+
+  .btn-lg {
+    @apply px-6 py-3 text-base sm:text-lg;
+  }
+
+  .btn-primary {
+    @apply inline-block rounded-lg btn-md font-medium bg-primary text-primary-foreground hover:opacity-90 transition-opacity;
+  }
+
+  .card-p {
+    @apply p-4 sm:p-5;
+  }
+
+  .card-gap {
+    @apply gap-3 sm:gap-4;
   }
 }
 

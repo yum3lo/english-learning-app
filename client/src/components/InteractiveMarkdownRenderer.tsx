@@ -64,7 +64,15 @@ const InteractiveMarkdownRenderer = ({
           pre: ({ children }) => (
             <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-4">{children}</pre>
           ),
-          strong: ({ children }) => <strong>{processChildren(children)}</strong>,
+          strong: ({ children }) => {
+            const text = typeof children === 'string' ? children : Array.isArray(children) ? children.join('') : '';
+            const isTimestamp = /^\[\d{1,2}:\d{2}(?::\d{2})?\]$/.test(text.trim());
+            return (
+              <strong className={isTimestamp ? 'font-mono font-medium text-muted-foreground' : undefined}>
+                {processChildren(children)}
+              </strong>
+            );
+          },
           em: ({ children }) => <em>{processChildren(children)}</em>,
           a: ({ children, href }) => (
             <a 
