@@ -73,7 +73,7 @@ const MediaCarousel = ({
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 card-gap">
           {items.map((item) => (
             <MediaCard key={item._id} item={item} />
           ))}
@@ -93,7 +93,7 @@ const MediaCarousel = ({
         <div className="flex items-center gap-3">
           {/* mobile scroll indicator */}
           {showMobileIndicators && (
-            <div className="flex sm:hidden text-xs">
+            <div className="flex sm:hidden text-sm">
               {current} / {count}
             </div>
           )}

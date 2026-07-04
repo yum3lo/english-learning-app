@@ -202,7 +202,7 @@ const MediaPage = () => {
 
           <div className="flex flex-wrap gap-2">
             {media.categories.map(category => (
-              <span key={category} className='px-2 py-1 bg-muted text-xs rounded'>{category}</span>
+              <span key={category} className='px-2 py-1 bg-muted text-sm rounded'>{category}</span>
             ))}
           </div>
         </div>

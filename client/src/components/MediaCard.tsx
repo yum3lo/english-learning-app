@@ -45,16 +45,16 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
                 <Play className="text-4xl" />
               )}
             </div>
-            <div className='absolute top-2 left-2 bg-foreground text-background px-2 py-1 rounded text-xs font-semibold'>
+            <div className='absolute top-2 left-2 bg-foreground text-background px-2 py-1 rounded text-sm font-semibold'>
               {item.cefrLevel}
             </div>
             {item.duration && (
-              <div className='absolute bottom-2 right-2 bg-muted px-2 py-1 rounded text-xs'>
+              <div className='absolute bottom-2 right-2 bg-muted px-2 py-1 rounded text-sm'>
                 {formatDuration(item.duration)}
               </div>
             )}
           </div>
-          <CardHeader>
+          <CardHeader className="p-4 sm:p-5">
             <CardTitle>
               <h3 className="line-clamp-2">{item.title}</h3>
             </CardTitle>
@@ -64,21 +64,21 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
               </div>
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-5 pt-0 sm:pt-0">
             <div className='text-sm line-clamp-2'>{item.description}</div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="p-4 sm:p-5 pt-0 sm:pt-0">
             <div className='flex flex-wrap gap-1'>
               {item.categories.slice(0, 2).map((category) => (
                 <span 
                   key={category}
-                  className='px-2 py-1 bg-muted text-xs rounded'
+                  className='px-2 py-1 bg-muted text-sm rounded'
                 >
                   {category}
                 </span>
               ))}
               {item.categories.length > 2 && (
-                <span className='px-2 py-1 text-xs rounded'>
+                <span className='px-2 py-1 text-sm rounded'>
                   +{item.categories.length - 2}
                 </span>
               )}

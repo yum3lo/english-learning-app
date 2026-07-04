@@ -1,11 +1,10 @@
 import { NavLink } from "react-router-dom"
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import logo from "../assets/logo.png"
+import logo from "../assets/logo.png";
 import { Button } from "./ui/button";
 import { User, LogOut, Menu, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -15,7 +14,7 @@ const Navbar = () => {
     const baseClasses = "rounded-md px-3 py-2 transition-colors duration-100 hover:bg-muted";
     
     return isActive
-    ? `${baseClasses} bg-secondary`
+    ? `${baseClasses} bg-secondary/30`
     : `${baseClasses}`;
   }
 
@@ -23,7 +22,7 @@ const Navbar = () => {
     const baseClasses = "block w-full text-left rounded-md px-3 py-2 transition-colors duration-100 hover:bg-muted";
     
     return isActive
-    ? `${baseClasses} bg-secondary`
+    ? `${baseClasses} bg-secondary/30`
     : `${baseClasses}`;
   }
 
@@ -41,7 +40,7 @@ const Navbar = () => {
 
   return (
     <nav className="shadow-md fixed w-full bg-background z-10">
-      <div className="container flex items-center justify-between mx-auto p-4">
+      <div className="container flex items-center justify-between mx-auto h-16 section-px">
         <div className="flex items-center">
           <NavLink className="flex items-center" to="/" onClick={closeMobileMenu}>
             <img
@@ -78,35 +77,22 @@ const Navbar = () => {
                 Listening
               </NavLink>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="none" size="icon">
-                    <Avatar>
-                      <AvatarFallback>
-                        {user ? getInitials(user.name) : <User />}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem asChild>
-                    <NavLink
-                      to="/profile"
-                      className="flex items-center gap-2 w-full cursor-pointer"
-                    >
-                      <User className="h-4 w-4" />
-                      Profile
-                    </NavLink>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={logout}
-                    className="flex items-center gap-2 w-full cursor-pointer"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <NavLink
+                to="/profile"
+              >
+                <Avatar>
+                  <AvatarFallback>
+                    {user ? getInitials(user.name) : <User />}
+                  </AvatarFallback>
+                </Avatar>
+              </NavLink>
+
+              <Button
+                onClick={logout}
+                variant="ghost"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
             </>
           ):(
             <>
@@ -188,13 +174,13 @@ const Navbar = () => {
 
                 <Button
                   variant="ghost"
-                  className="w-full justify-start text-left"
+                  className="w-full justify-start text-left text-base gap-2 px-3"
                   onClick={() => {
                     logout();
                     closeMobileMenu();
                   }}
                 >
-                  <LogOut className="h-4 w-4 mr-2" />
+                  <LogOut className="h-4 w-4" />
                   Logout
                 </Button>
               </>

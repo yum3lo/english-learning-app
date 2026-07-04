@@ -43,7 +43,7 @@ const FilterSearch = ({
           <h3>Filter & Search</h3>
         </CardTitle>
         <CardDescription>
-          <p className="text-xs lg:text-sm">
+          <p className="text-sm lg:text-sm">
             {`Find ${mediaType} that match your interests and current level`}
           </p>
         </CardDescription>
@@ -96,7 +96,7 @@ const FilterSearch = ({
           </div>
         )}
 
-        <div className="text-xs lg:text-sm font-medium text-center p-2 bg-muted rounded-md">
+        <div className="text-sm lg:text-sm font-medium text-center p-2 bg-muted rounded-md">
           {`${filteredCount} ${mediaType} found`}
         </div>
 

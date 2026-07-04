@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import tulips from '../assets/tulips.png';
+import flower from '../assets/flower.png';
 import ladybug from '../assets/ladybug.png';
-import flowers from '../assets/flowers.png';
+import unicorn from '../assets/unicorn.png';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -116,8 +116,8 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
       <img
-        src={tulips}
-        alt="Tulips"
+        src={flower}
+        alt="Flower"
         className="w-[180px] absolute left-20 bottom-50"
       />
       
@@ -128,8 +128,8 @@ const RegisterPage = () => {
       />
 
       <img
-        src={flowers}
-        alt="Flowers"
+        src={unicorn}
+        alt="Unicorn"
         className="w-40 absolute right-20 bottom-10"
       />
 
@@ -248,7 +248,7 @@ const RegisterPage = () => {
                     </Badge>
                   ))}
                 </div>
-                <p className="text-xs mt-2">
+                <p className="text-sm mt-2">
                   Select your current English proficiency level
                 </p>
               </div>
@@ -269,7 +269,7 @@ const RegisterPage = () => {
                     </Badge>
                   ))}
                 </div>
-                <p className="text-xs mt-2">
+                <p className="text-sm mt-2">
                   Click on the categories you're interested in
                 </p>
                 {errors.fieldsOfInterest && (

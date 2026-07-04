@@ -117,8 +117,8 @@ const DictionaryPopup = ({
                           
                           {definition.synonyms.length > 0 && (
                             <div>
-                              <span className="text-xs font-medium">SYNONYMS: </span>
-                              <span className="text-xs">
+                              <span className="text-sm font-medium">SYNONYMS: </span>
+                              <span className="text-sm">
                                 {definition.synonyms.join(', ')}
                               </span>
                             </div>
@@ -126,8 +126,8 @@ const DictionaryPopup = ({
                           
                           {definition.antonyms.length > 0 && (
                             <div>
-                              <span className="text-xs font-medium">ANTONYMS: </span>
-                              <span className="text-xs">
+                              <span className="text-sm font-medium">ANTONYMS: </span>
+                              <span className="text-sm">
                                 {definition.antonyms.join(', ')}
                               </span>
                             </div>

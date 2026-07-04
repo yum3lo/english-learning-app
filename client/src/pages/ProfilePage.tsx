@@ -323,7 +323,7 @@ const ProfilePage = () => {
                     style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                   ></div>
                 </div>
-                <p className="text-xs">
+                <p className="text-sm">
                   {currentLevelPoints} out of {pointsNeededForNextLevel} points
                 </p>
               </div>
@@ -402,7 +402,7 @@ const ProfilePage = () => {
                   </Badge>
                 ))}
               </div>
-              <p className="text-xs">
+              <p className="text-sm">
                 Selected {editedCategories.length} categories
               </p>
               <div className="flex gap-2">
