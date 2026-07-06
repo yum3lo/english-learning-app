@@ -1,18 +1,22 @@
 import mongoose, { Document, Schema } from 'mongoose';
 import { CEFR_LEVELS, CEFRLevel } from '../constants/categories';
 
+export interface ISense {
+  partOfSpeech: string;
+  definition: string;
+  example?: string;
+  synonyms: string[];
+  antonyms: string[];
+}
+
 export interface IVocabularyWord extends Document {
   _id: string;
   word: string;
-  definition: string;
-  phonetic: string;
+  phonetic?: string;
+  audioUrl?: string;
   cefrLevel: CEFRLevel;
-  partOfSpeech: string;
-  
-  exampleSentences: string[];
-  synonyms: string[];
-  antonyms: string[];
-  
+  senses: ISense[];
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,15 +25,31 @@ export interface IUserVocabulary extends Document {
   _id: string;
   userId: string;
   wordId: mongoose.Types.ObjectId;
-  
+
   // context where the word was encountered
   mediaId?: mongoose.Types.ObjectId;
   sentence: string;
   sentencePosition?: number; // in the media transcription
-  
+
   createdAt: Date;
   updatedAt: Date;
 }
+
+const senseSchema = new Schema<ISense>({
+  partOfSpeech: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  definition: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  example: String,
+  synonyms: [String],
+  antonyms: [String]
+}, { _id: false });
 
 const vocabularyWordSchema = new Schema<IVocabularyWord>({
   word: {
@@ -40,12 +60,11 @@ const vocabularyWordSchema = new Schema<IVocabularyWord>({
     unique: true,
     index: true
   },
-  definition: {
+  phonetic: {
     type: String,
-    required: [true, 'Definition is required'],
     trim: true
   },
-  phonetic: {
+  audioUrl: {
     type: String,
     trim: true
   },
@@ -54,14 +73,10 @@ const vocabularyWordSchema = new Schema<IVocabularyWord>({
     enum: CEFR_LEVELS,
     required: true
   },
-  partOfSpeech: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  exampleSentences: [String],
-  synonyms: [String],
-  antonyms: [String]
+  senses: {
+    type: [senseSchema],
+    default: []
+  }
 }, {
   timestamps: true
 });

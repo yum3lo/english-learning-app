@@ -3,16 +3,20 @@ export interface DictionaryPhonetic {
   audio?: string;
 }
 
-export interface DictionaryDefinition {
+export interface DictionarySense {
+  partOfSpeech: string;
   definition: string;
   example?: string;
   synonyms: string[];
   antonyms: string[];
 }
 
-export interface DictionaryMeaning {
+export interface DictionaryContext {
+  lemma: string;
   partOfSpeech: string;
-  definitions: DictionaryDefinition[];
+  definition: string;
+  bestSenseIndex: number;
+  sourceIsModel: boolean;
 }
 
 export interface DictionaryEntry {
@@ -20,6 +24,6 @@ export interface DictionaryEntry {
   word: string;
   phonetic?: string;
   phonetics: DictionaryPhonetic[];
-  origin?: string;
-  meanings: DictionaryMeaning[];
+  senses: DictionarySense[];
+  context: DictionaryContext | null;
 }

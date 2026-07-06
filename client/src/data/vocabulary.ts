@@ -1,14 +1,21 @@
 import type { CEFRLevel } from '@/constants/categories';
+import type { DictionarySense } from '@/types/dictionary';
 
+export type { DictionarySense } from '@/types/dictionary';
 export type MasteryStage = 'seedling' | 'growing' | 'bloomed';
+export type SourceMediaType = 'article' | 'video';
 
 export interface VocabularyItem {
   word: string;
   definition: string;
   partOfSpeech: string;
-  example?: string;
-  exampleInText?: string;
+  lemma: string;
   pronunciation: string;
+  audioUrl?: string;
+  sourceSentence?: string;
+  sourceMediaType?: SourceMediaType;
+  sourceIsModel: boolean;
+  allSenses?: DictionarySense[];
   cefrLevel: CEFRLevel;
   wordId: string;
   interval: number;
@@ -23,21 +30,18 @@ export interface VocabularyItem {
 export interface PopulatedVocabularyWord {
   _id: string;
   word: string;
-  definition: string;
   phonetic?: string;
-  partOfSpeech: string;
-  exampleSentences?: string[];
-  synonyms?: string[];
-  antonyms?: string[];
+  audioUrl?: string;
+  senses?: DictionarySense[];
   cefrLevel: CEFRLevel;
 }
 
 export const vocabularyData: Record<string, VocabularyItem[]> = {};
 
-// converting learned words to vocabulary items
+// converting learned words to vocabulary items - reads the context sense chosen once at lookup
+// time and stored on the learned word itself, not the shared (multi-sense) dictionary entry
 export const convertLearnedWordsToVocabulary = (learnedWords: {
   wordId: PopulatedVocabularyWord;
-  exampleInText?: string;
   learnedAt: Date;
   interval?: number;
   repetitions?: number;
@@ -45,14 +49,28 @@ export const convertLearnedWordsToVocabulary = (learnedWords: {
   nextReviewDate?: string;
   lastReviewedAt?: string;
   stage?: MasteryStage;
+  surfaceForm?: string;
+  lemma?: string;
+  partOfSpeech?: string;
+  definition?: string;
+  pronunciation?: string;
+  audioUrl?: string;
+  sourceSentence?: string;
+  sourceMediaType?: SourceMediaType;
+  sourceIsModel?: boolean;
+  allSenses?: DictionarySense[];
 }[]): VocabularyItem[] => {
   return learnedWords.map(lw => ({
-    word: lw.wordId.word,
-    definition: lw.wordId.definition,
-    partOfSpeech: lw.wordId.partOfSpeech,
-    example: lw.wordId.exampleSentences?.[0],
-    exampleInText: lw.exampleInText,
-    pronunciation: lw.wordId.phonetic || 'No pronunciation available',
+    word: lw.surfaceForm ?? lw.wordId.word,
+    definition: lw.definition ?? 'No definition available',
+    partOfSpeech: lw.partOfSpeech ?? 'unknown',
+    lemma: lw.lemma ?? lw.wordId.word,
+    pronunciation: lw.pronunciation || 'No pronunciation available',
+    audioUrl: lw.audioUrl,
+    sourceSentence: lw.sourceSentence,
+    sourceMediaType: lw.sourceMediaType,
+    sourceIsModel: lw.sourceIsModel ?? false,
+    allSenses: lw.allSenses,
     cefrLevel: lw.wordId.cefrLevel,
     wordId: lw.wordId._id,
     interval: lw.interval ?? 0,

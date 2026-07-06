@@ -1,10 +1,38 @@
 import express from 'express';
 import axios from 'axios';
-import { VocabularyWord } from '../models/Vocabulary';
+import { VocabularyWord, ISense } from '../models/Vocabulary';
+import { disambiguateSense } from '../services/senseDisambiguationService';
+import { getCachedDisambiguation, setCachedDisambiguation } from '../utils/disambiguationCache';
 
 const router = express.Router();
 
-// GET /api/dictionary/:word
+interface DictionaryContext {
+  lemma: string;
+  partOfSpeech: string;
+  definition: string;
+  bestSenseIndex: number;
+  sourceIsModel: boolean;
+}
+
+// flattens the external dictionaryapi.dev meanings[]/definitions[] shape into one sense per
+// part-of-speech x definition pair, matching our simpler ISense[] storage shape
+function flattenSenses(meanings: any[]): ISense[] {
+  const senses: ISense[] = [];
+  for (const meaning of meanings || []) {
+    for (const def of meaning.definitions || []) {
+      senses.push({
+        partOfSpeech: meaning.partOfSpeech || 'unknown',
+        definition: def.definition || '',
+        example: def.example,
+        synonyms: def.synonyms || [],
+        antonyms: def.antonyms || [],
+      });
+    }
+  }
+  return senses;
+}
+
+// GET /api/dictionary/:word?sentence=...
 router.get('/:word', async (req, res) => {
   try {
     const raw = (req.params.word || '').trim();
@@ -14,70 +42,111 @@ router.get('/:word', async (req, res) => {
     }
 
     const key = raw.toLowerCase();
+    const sentence = typeof req.query.sentence === 'string' ? req.query.sentence.trim() : undefined;
 
-    // looking up locally first
-    const local = await VocabularyWord.findOne({ word: key }).lean();
-    if (local) {
-      const entry = {
-        _id: local._id,
-        word: local.word,
-        phonetic: local.phonetic,
-        phonetics: local.phonetic ? [{ text: local.phonetic }] : [],
-        origin: undefined,
-        meanings: [
-          {
-            partOfSpeech: local.partOfSpeech || 'unknown',
-            definitions: [
-              {
-                definition: local.definition || '',
-                example: local.exampleSentences?.[0],
-                synonyms: local.synonyms || [],
-                antonyms: local.antonyms || []
-              }
-            ]
-          }
-        ]
+    let vocabWord = await VocabularyWord.findOne({ word: key });
+
+    // treat missing/empty senses as stale (legacy-shape doc, or a prior "not found" stub) and refresh
+    if (!vocabWord || vocabWord.senses.length === 0) {
+      let phonetic: string | undefined;
+      let audioUrl: string | undefined;
+      let senses: ISense[] = [];
+
+      try {
+        const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`;
+        const response = await axios.get(apiUrl, { timeout: 5000 });
+        const data = response.data;
+        if (Array.isArray(data) && data.length > 0) {
+          const fetched = data[0];
+          phonetic = fetched.phonetic || fetched.phonetics?.[0]?.text || undefined;
+          audioUrl = fetched.phonetics?.find((p: any) => p.audio)?.audio || undefined;
+          senses = flattenSenses(fetched.meanings);
+        }
+      } catch (err: any) {
+        // dictionaryapi.dev 404s (or errors) for unknown words - fall through with empty senses
+        if (err?.response?.status !== 404) {
+          console.warn('External dictionary lookup failed:', err?.message || err);
+        }
+      }
+
+      vocabWord = await VocabularyWord.findOneAndUpdate(
+        { word: key },
+        { $setOnInsert: { word: key, cefrLevel: 'B2' }, $set: { phonetic, audioUrl, senses } },
+        { upsert: true, new: true }
+      );
+    }
+
+    const senses = vocabWord!.senses;
+    let context: DictionaryContext | null = null;
+
+    if (senses.length === 0) {
+      context = null;
+    } else if (senses.length === 1) {
+      context = {
+        lemma: key,
+        partOfSpeech: senses[0].partOfSpeech,
+        definition: senses[0].definition,
+        bestSenseIndex: 0,
+        sourceIsModel: false,
       };
-
-      res.status(200).json({ success: true, entry });
-      return;
+    } else if (!sentence) {
+      // no sentence context to disambiguate against - best guess, not shown as authoritative
+      context = {
+        lemma: key,
+        partOfSpeech: senses[0].partOfSpeech,
+        definition: senses[0].definition,
+        bestSenseIndex: 0,
+        sourceIsModel: false,
+      };
+    } else {
+      const cached = getCachedDisambiguation(raw, sentence);
+      if (cached) {
+        context = {
+          lemma: cached.lemma,
+          partOfSpeech: cached.partOfSpeech,
+          definition: cached.bestSenseIndex >= 0 ? senses[cached.bestSenseIndex].definition : cached.definition,
+          bestSenseIndex: cached.bestSenseIndex,
+          sourceIsModel: cached.bestSenseIndex === -1,
+        };
+      } else {
+        try {
+          const result = await disambiguateSense(
+            raw,
+            sentence,
+            senses.map(s => ({ partOfSpeech: s.partOfSpeech, definition: s.definition }))
+          );
+          setCachedDisambiguation(raw, sentence, result);
+          context = {
+            lemma: result.lemma,
+            partOfSpeech: result.partOfSpeech,
+            definition: result.bestSenseIndex >= 0 ? senses[result.bestSenseIndex].definition : result.definition,
+            bestSenseIndex: result.bestSenseIndex,
+            sourceIsModel: result.bestSenseIndex === -1,
+          };
+        } catch (err: any) {
+          console.warn('Sense disambiguation failed, falling back to first sense:', err?.message || err);
+          context = {
+            lemma: key,
+            partOfSpeech: senses[0].partOfSpeech,
+            definition: senses[0].definition,
+            bestSenseIndex: 0,
+            sourceIsModel: false,
+          };
+        }
+      }
     }
 
-    // not in DB -> fetching from external dictionary API
-    const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`;
-    const response = await axios.get(apiUrl, { timeout: 5000 });
-    const data = response.data;
-    if (!Array.isArray(data) || data.length === 0) {
-      res.status(404).json({ success: false, message: 'Definition not found' });
-      return;
-    }
-
-    const fetched = data[0];
-
-    let savedId: string | undefined;
-    try {
-      const firstMeaning = fetched.meanings?.[0];
-      const firstDef = firstMeaning?.definitions?.[0];
-
-      const created = await VocabularyWord.create({
-        word: key,
-        definition: firstDef?.definition || (fetched.meanings?.[0]?.definitions?.[0]?.definition || 'No definition available'),
-        phonetic: fetched.phonetic || fetched.phonetics?.[0]?.text || undefined,
-        cefrLevel: 'B2',
-        partOfSpeech: firstMeaning?.partOfSpeech || 'unknown',
-        exampleSentences: firstDef?.example ? [firstDef.example] : [],
-        synonyms: firstDef?.synonyms || [],
-        antonyms: firstDef?.antonyms || []
-      });
-      savedId = created._id.toString();
-    } catch (err: any) {
-      console.warn('Could not save dictionary word locally:', (err && err.message) ? err.message : err);
-      // another request may have created it concurrently - look it up so the client still gets a wordId
-      const existing = await VocabularyWord.findOne({ word: key }).lean();
-      savedId = existing?._id?.toString();
-    }
-
-    res.status(200).json({ success: true, entry: { ...fetched, _id: savedId } });
+    res.status(200).json({
+      success: true,
+      entry: {
+        _id: vocabWord!._id,
+        word: vocabWord!.word,
+        phonetic: vocabWord!.phonetic,
+        phonetics: vocabWord!.phonetic ? [{ text: vocabWord!.phonetic, audio: vocabWord!.audioUrl }] : [],
+        senses,
+        context,
+      },
+    });
   } catch (error: any) {
     console.error('Dictionary lookup error:', error?.message || error);
     res.status(500).json({ success: false, message: 'Dictionary lookup failed' });

@@ -4,10 +4,9 @@ import type { ReactNode } from 'react';
 import type { CEFRLevel } from '@/constants/categories';
 import { userAPI } from '@/services/api';
 
-import type { PopulatedVocabularyWord, MasteryStage } from '@/data/vocabulary';
+import type { PopulatedVocabularyWord, MasteryStage, DictionarySense, SourceMediaType } from '@/data/vocabulary';
 interface LearnedWord {
   wordId: PopulatedVocabularyWord;
-  exampleInText?: string;
   learnedAt: Date;
   interval: number;
   repetitions: number;
@@ -15,6 +14,17 @@ interface LearnedWord {
   nextReviewDate: string;
   lastReviewedAt?: string;
   stage: MasteryStage;
+
+  surfaceForm: string;
+  lemma: string;
+  partOfSpeech: string;
+  definition: string;
+  pronunciation?: string;
+  audioUrl?: string;
+  sourceSentence?: string;
+  sourceMediaType?: SourceMediaType;
+  sourceIsModel: boolean;
+  allSenses?: DictionarySense[];
 }
 
 interface CompletedMedia {
@@ -68,7 +78,16 @@ interface AuthContextType {
   recordMediaCompleted: (mediaType: 'article' | 'video', mediaId: string) => Promise<void>;
   addLearnedWord: (wordData: {
     wordId: string;
-    exampleInText?: string;
+    surfaceForm: string;
+    lemma: string;
+    partOfSpeech: string;
+    definition: string;
+    pronunciation?: string;
+    audioUrl?: string;
+    sourceSentence?: string;
+    sourceMediaType?: SourceMediaType;
+    sourceIsModel?: boolean;
+    allSenses?: DictionarySense[];
   }) => Promise<void>;
   reviewWord: (wordId: string, quality: number) => Promise<{ stage: MasteryStage }>;
 }
@@ -313,7 +332,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const addLearnedWord = async (wordData: {
     wordId: string;
-    exampleInText?: string;
+    surfaceForm: string;
+    lemma: string;
+    partOfSpeech: string;
+    definition: string;
+    pronunciation?: string;
+    audioUrl?: string;
+    sourceSentence?: string;
+    sourceMediaType?: SourceMediaType;
+    sourceIsModel?: boolean;
+    allSenses?: DictionarySense[];
   }) => {
     try {
       const token = localStorage.getItem('authToken');
@@ -351,7 +379,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       toast({
         title: "Word learned!",
-        description: `Great job! You've learned "${returnedLearnedWord.wordId.word}".`,
+        description: `Great job! You've learned "${returnedLearnedWord.surfaceForm}".`,
       });
     } catch (error) {
       console.error('Add learned word error:', error);

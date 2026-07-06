@@ -2,10 +2,10 @@ import mongoose, { Document, Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { CATEGORIES, CEFR_LEVELS, CEFRLevel } from '../constants/categories';
 import { stripTime, Stage } from '../utils/spacedRepetition';
+import { ISense } from './Vocabulary';
 
 export interface LearnedWord {
   wordId: mongoose.Types.ObjectId;
-  exampleInText?: string;
   learnedAt: Date;
   interval: number;
   repetitions: number;
@@ -13,6 +13,18 @@ export interface LearnedWord {
   nextReviewDate: Date;
   lastReviewedAt?: Date;
   stage: Stage;
+
+  // context-aware sense disambiguation (chosen once at lookup time, stable thereafter)
+  surfaceForm: string;
+  lemma: string;
+  partOfSpeech: string;
+  definition: string;
+  pronunciation?: string;
+  audioUrl?: string;
+  sourceSentence?: string;
+  sourceMediaType?: 'article' | 'video';
+  sourceIsModel: boolean;
+  allSenses?: ISense[];
 }
 
 export interface CompletedMedia {
@@ -94,7 +106,6 @@ const userSchema = new Schema<IUser>({
       ref: 'VocabularyWord',
       required: true
     },
-    exampleInText: String,
     learnedAt: {
       type: Date,
       default: Date.now
@@ -122,6 +133,31 @@ const userSchema = new Schema<IUser>({
       type: String,
       enum: ['seedling', 'growing', 'bloomed'],
       default: 'seedling'
+    },
+    surfaceForm: String,
+    lemma: String,
+    partOfSpeech: String,
+    definition: String,
+    pronunciation: String,
+    audioUrl: String,
+    sourceSentence: String,
+    sourceMediaType: {
+      type: String,
+      enum: ['article', 'video']
+    },
+    sourceIsModel: {
+      type: Boolean,
+      default: false
+    },
+    allSenses: {
+      type: [{
+        partOfSpeech: String,
+        definition: String,
+        example: String,
+        synonyms: [String],
+        antonyms: [String]
+      }],
+      default: undefined
     }
   }],
   completedMedia: [{

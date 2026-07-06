@@ -1,6 +1,7 @@
 import axios from 'axios';
 import type { MediaItem, UnifiedMediaItem } from '@/data/mediaData';
 import type { CEFRLevel } from '@/constants/categories';
+import type { DictionarySense, SourceMediaType } from '@/data/vocabulary';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -116,7 +117,19 @@ export const userAPI = {
     return response.data;
   },
 
-  addLearnedWord: async (wordData: { wordId: string; exampleInText?: string }) => {
+  addLearnedWord: async (wordData: {
+    wordId: string;
+    surfaceForm: string;
+    lemma: string;
+    partOfSpeech: string;
+    definition: string;
+    pronunciation?: string;
+    audioUrl?: string;
+    sourceSentence?: string;
+    sourceMediaType?: SourceMediaType;
+    sourceIsModel?: boolean;
+    allSenses?: DictionarySense[];
+  }) => {
     const response = await api.post('/users/learned-word', wordData);
     return response.data;
   },

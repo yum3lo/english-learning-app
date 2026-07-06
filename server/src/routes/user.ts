@@ -276,7 +276,16 @@ router.post('/learned-word',
   authenticate,
   [
     body('wordId').isMongoId().withMessage('A valid wordId is required'),
-    body('exampleInText').optional().isString().withMessage('exampleInText must be a string')
+    body('surfaceForm').notEmpty().isString().withMessage('surfaceForm is required'),
+    body('lemma').notEmpty().isString().withMessage('lemma is required'),
+    body('partOfSpeech').notEmpty().isString().withMessage('partOfSpeech is required'),
+    body('definition').notEmpty().isString().withMessage('definition is required'),
+    body('pronunciation').optional().isString(),
+    body('audioUrl').optional().isString(),
+    body('sourceSentence').optional().isString(),
+    body('sourceMediaType').optional().isIn(['article', 'video']),
+    body('sourceIsModel').optional().isBoolean(),
+    body('allSenses').optional().isArray()
   ],
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -299,7 +308,10 @@ router.post('/learned-word',
         return;
       }
 
-      const { wordId, exampleInText } = req.body;
+      const {
+        wordId, surfaceForm, lemma, partOfSpeech, definition,
+        pronunciation, audioUrl, sourceSentence, sourceMediaType, sourceIsModel, allSenses
+      } = req.body;
 
       const alreadyLearned = user.learnedWords.some(w => w.wordId.toString() === wordId);
       if (alreadyLearned) {
@@ -311,11 +323,20 @@ router.post('/learned-word',
       }
       user.learnedWords.push({
         wordId,
-        exampleInText,
         learnedAt: new Date(),
         ...DEFAULT_SRS_FIELDS,
         nextReviewDate: stripTime(new Date()),
-        stage: 'seedling'
+        stage: 'seedling',
+        surfaceForm,
+        lemma,
+        partOfSpeech,
+        definition,
+        pronunciation,
+        audioUrl,
+        sourceSentence,
+        sourceMediaType,
+        sourceIsModel: sourceIsModel ?? false,
+        allSenses
       });
       user.wordsLearned += 1;
       await user.save();
