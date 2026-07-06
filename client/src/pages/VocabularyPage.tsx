@@ -67,6 +67,8 @@ const VocabularyPage = () => {
     isDictionaryOpen,
     isLoadingDictionary,
     isAddingToLearned,
+    encounteredSentence,
+    encounteredMediaType,
     handleWordClick,
     handleAddToLearned,
     handleCloseDictionary,
@@ -336,6 +338,8 @@ const VocabularyPage = () => {
         onAddToLearned={handleAddToLearned}
         isAddingToLearned={isAddingToLearned}
         isLoading={isLoadingDictionary}
+        sourceSentence={encounteredSentence}
+        sourceMediaType={encounteredMediaType}
       />
     </div>
   );

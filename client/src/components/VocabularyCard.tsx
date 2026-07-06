@@ -8,8 +8,13 @@ import { cn } from '@/lib/utils';
 
 interface VocabularyCardProps {
   vocabulary: VocabularyItem;
-  onWordClick?: (word: string, sentence?: string) => void;
+  onWordClick?: (word: string, sentence?: string, mediaType?: VocabularyItem['sourceMediaType']) => void;
 }
+
+const SOURCE_LABELS: Record<NonNullable<VocabularyItem['sourceMediaType']>, string> = {
+  article: 'In this article',
+  video: 'In this video',
+};
 
 const getStatusLine = (vocabulary: VocabularyItem): { text: string; className: string } => {
   if (isDue(vocabulary.nextReviewDate)) {
@@ -40,7 +45,7 @@ const VocabularyCard = ({ vocabulary, onWordClick }: VocabularyCardProps) => {
             <div className="flex items-center gap-1 flex-1 min-w-0">
               <span
                 className="text-lg text-bloom font-semibold break-words"
-                onClick={() => onWordClick && onWordClick(vocabulary.word)}
+                onClick={() => onWordClick && onWordClick(vocabulary.word, vocabulary.sourceSentence, vocabulary.sourceMediaType)}
                 style={{ cursor: onWordClick ? 'pointer' : 'default' }}
               >
                 {vocabulary.word}
@@ -69,6 +74,17 @@ const VocabularyCard = ({ vocabulary, onWordClick }: VocabularyCardProps) => {
         <p className="text-sm line-clamp-2">
           <ClickableText text={vocabulary.definition} onWordClick={onWordClick} />
         </p>
+
+        {vocabulary.sourceSentence && (
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              {vocabulary.sourceMediaType ? SOURCE_LABELS[vocabulary.sourceMediaType] : 'In context'}
+            </p>
+            <p className="border-l-[3px] border-accent pl-3 text-sm italic text-muted-foreground line-clamp-2">
+              "{vocabulary.sourceSentence}"
+            </p>
+          </div>
+        )}
 
         <div className="flex gap-1">
           {[0, 1, 2, 3].map(i => (

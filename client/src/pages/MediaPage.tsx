@@ -37,6 +37,8 @@ const MediaPage = () => {
     isDictionaryOpen,
     isLoadingDictionary,
     isAddingToLearned,
+    encounteredSentence,
+    encounteredMediaType,
     handleWordClick,
     handleAddToLearned,
     handleCloseDictionary,
@@ -217,15 +219,15 @@ const MediaPage = () => {
             videoUrl={media.content?.videoUrl || media.url}
             title={media.title}
             transcript={media.content?.transcript}
-            onWordClick={handleWordClick}
+            onWordClick={(word, sentence) => handleWordClick(word, sentence, media.type)}
           />
         ) : media.content?.content ? (
           <>
             <Card>
               <CardContent className='mt-8'>
-                <InteractiveMarkdownRenderer 
-                  content={media.content.content} 
-                  onWordClick={handleWordClick}
+                <InteractiveMarkdownRenderer
+                  content={media.content.content}
+                  onWordClick={(word, sentence) => handleWordClick(word, sentence, media.type)}
                 />
               </CardContent>
             </Card>
@@ -263,6 +265,8 @@ const MediaPage = () => {
         onAddToLearned={handleAddToLearned}
         isAddingToLearned={isAddingToLearned}
         isLoading={isLoadingDictionary}
+        sourceSentence={encounteredSentence}
+        sourceMediaType={encounteredMediaType}
       />
     </div>
   );
