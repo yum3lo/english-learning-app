@@ -14,6 +14,11 @@ export interface LearnedWord {
   lastReviewedAt?: Date;
   stage: Stage;
 
+  // per-cycle mastery of each recall direction, feeding the "bloomed" gate in deriveStage;
+  // reset to false on a miss (quality < 3) alongside the repetitions reset
+  knownWordToDef: boolean;
+  knownDefToWord: boolean;
+
   // context-aware sense disambiguation (chosen once at lookup time, stable thereafter)
   surfaceForm: string;
   lemma: string;
@@ -133,6 +138,14 @@ const userSchema = new Schema<IUser>({
       type: String,
       enum: ['seedling', 'growing', 'bloomed'],
       default: 'seedling'
+    },
+    knownWordToDef: {
+      type: Boolean,
+      default: false
+    },
+    knownDefToWord: {
+      type: Boolean,
+      default: false
     },
     surfaceForm: String,
     lemma: String,

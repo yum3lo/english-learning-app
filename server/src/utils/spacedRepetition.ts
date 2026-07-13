@@ -29,10 +29,18 @@ export function addDays(date: Date, days: number): Date {
   return result;
 }
 
-export function deriveStage(repetitions: number): Stage {
+export interface MasteryFlags {
+  knownWordToDef: boolean;
+  knownDefToWord: boolean;
+}
+
+// "bloomed" also requires having proven both recall directions (word->definition and
+// definition->word), not just enough repetitions - otherwise a word drilled one-directionally
+// could bloom without the learner ever having produced the other direction
+export function deriveStage(repetitions: number, masteryFlags: MasteryFlags): Stage {
   if (repetitions <= 1) return 'seedling';
   if (repetitions <= 3) return 'growing';
-  return 'bloomed';
+  return masteryFlags.knownWordToDef && masteryFlags.knownDefToWord ? 'bloomed' : 'growing';
 }
 
 // first two successful reviews use fixed steps (per difficulty) rather than easeFactor,
@@ -41,7 +49,12 @@ export function deriveStage(repetitions: number): Stage {
 const FIRST_REVIEW_STEPS: Record<number, number> = { 3: 2, 4: 3, 5: 4 };
 const SECOND_REVIEW_STEPS: Record<number, number> = { 3: 3, 4: 7, 5: 14 };
 
-export function reviewWord(state: SRSState, quality: number, referenceDate: Date = new Date()): SRSResult {
+export function reviewWord(
+  state: SRSState,
+  quality: number,
+  masteryFlags: MasteryFlags,
+  referenceDate: Date = new Date()
+): SRSResult {
   let { interval, repetitions, easeFactor } = state;
 
   if (quality < 3) {
@@ -67,6 +80,6 @@ export function reviewWord(state: SRSState, quality: number, referenceDate: Date
     easeFactor,
     lastReviewedAt: today,
     nextReviewDate: addDays(today, interval),
-    stage: deriveStage(repetitions),
+    stage: deriveStage(repetitions, masteryFlags),
   };
 }

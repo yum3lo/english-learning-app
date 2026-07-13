@@ -27,6 +27,18 @@ interface LearnedWord {
   allSenses?: DictionarySense[];
 }
 
+export interface AnswerCheckResult {
+  verdict: 'correct' | 'partial' | 'incorrect';
+  spellingIssue: boolean;
+  spellingCorrection: string | null;
+  feedback?: string;
+  gradedOffline: boolean;
+  quality: number;
+  scored: boolean;
+  stage: MasteryStage;
+  interval: number;
+}
+
 interface CompletedMedia {
   mediaId: string;
   mediaType: 'article' | 'video';
@@ -90,6 +102,7 @@ interface AuthContextType {
     allSenses?: DictionarySense[];
   }) => Promise<void>;
   reviewWord: (wordId: string, quality: number) => Promise<{ stage: MasteryStage }>;
+  checkFlashcardAnswer: (wordId: string, mode: 'word' | 'definition', answer: string) => Promise<AnswerCheckResult>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -424,6 +437,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const checkFlashcardAnswer = async (
+    wordId: string,
+    mode: 'word' | 'definition',
+    answer: string
+  ): Promise<AnswerCheckResult> => {
+    try {
+      const data = await userAPI.checkFlashcardAnswer(wordId, mode, answer);
+      const updatedLearnedWord: LearnedWord = data.learnedWord;
+
+      if (user) {
+        const updatedLearnedWords = user.learnedWords.map(lw =>
+          lw.wordId._id === wordId ? updatedLearnedWord : lw
+        );
+        const updatedUser = {
+          ...user,
+          learnedWords: updatedLearnedWords,
+          points: data.points,
+          streakCount: data.streakCount,
+          lastStreakDate: data.lastStreakDate,
+        };
+        setUser(updatedUser);
+        localStorage.setItem('userData', JSON.stringify(updatedUser));
+      }
+
+      return {
+        verdict: data.verdict,
+        spellingIssue: data.spellingIssue,
+        spellingCorrection: data.spellingCorrection,
+        feedback: data.feedback,
+        gradedOffline: data.gradedOffline,
+        quality: data.quality,
+        scored: data.scored,
+        stage: updatedLearnedWord.stage,
+        interval: updatedLearnedWord.interval,
+      };
+    } catch (error) {
+      console.error('Check flashcard answer error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Couldn't check your answer. Please try again.",
+      });
+      throw error;
+    }
+  };
+
   const deleteAccount = async (): Promise<void> => {
     try {
       const token = localStorage.getItem('authToken');
@@ -477,6 +536,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     recordMediaCompleted,
     addLearnedWord,
     reviewWord,
+    checkFlashcardAnswer,
   };
 
   return (

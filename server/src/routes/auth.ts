@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
+import { CATEGORIES } from '../constants/categories';
 
 const router = express.Router();
 
@@ -25,7 +26,14 @@ router.post('/register', [
     .withMessage('Please provide a valid email'),
   body('password')
     .isLength({ min: 6 })
-    .withMessage('Password must be at least 6 characters long')
+    .withMessage('Password must be at least 6 characters long'),
+  body('fieldsOfInterest')
+    .optional()
+    .isArray()
+    .withMessage('fieldsOfInterest must be an array'),
+  body('fieldsOfInterest.*')
+    .isIn(CATEGORIES)
+    .withMessage(`Each field of interest must be one of: ${CATEGORIES.join(', ')}`)
 ], async (req: Request, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);

@@ -2,7 +2,10 @@ import express, { Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import User from '../models/User';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import { reviewWord, stripTime, DEFAULT_SRS_FIELDS } from '../utils/spacedRepetition';
+import { stripTime, DEFAULT_SRS_FIELDS } from '../utils/spacedRepetition';
+import { applyWordReview } from '../services/reviewService';
+import { checkWordModeAgainstTargets, fallbackCheck, normalize } from '../utils/levenshtein';
+import { gradeDefinitionAnswer, GradingResult } from '../services/answerGradingService';
 
 const router = express.Router();
 
@@ -327,6 +330,8 @@ router.post('/learned-word',
         ...DEFAULT_SRS_FIELDS,
         nextReviewDate: stripTime(new Date()),
         stage: 'seedling',
+        knownWordToDef: false,
+        knownDefToWord: false,
         surfaceForm,
         lemma,
         partOfSpeech,
@@ -402,36 +407,7 @@ router.patch('/learned-word/:wordId/review',
         return;
       }
 
-      const result = reviewWord({
-        interval: learnedWord.interval ?? 0,
-        repetitions: learnedWord.repetitions ?? 0,
-        easeFactor: learnedWord.easeFactor ?? 2.5
-      }, quality);
-
-      learnedWord.interval = result.interval;
-      learnedWord.repetitions = result.repetitions;
-      learnedWord.easeFactor = result.easeFactor;
-      learnedWord.nextReviewDate = result.nextReviewDate;
-      learnedWord.lastReviewedAt = result.lastReviewedAt;
-      learnedWord.stage = result.stage;
-
-      if (quality >= 3) {
-        user.points += 1;
-      }
-
-      const todayDateOnly = stripTime(new Date());
-      if (!user.lastStreakDate) {
-        user.streakCount = 1;
-      } else {
-        const diffDays = Math.round((todayDateOnly.getTime() - stripTime(user.lastStreakDate).getTime()) / 86400000);
-        if (diffDays === 1) {
-          user.streakCount += 1;
-        } else if (diffDays > 1) {
-          user.streakCount = 1;
-        }
-        // diffDays <= 0 (user already reviewed today) does not change streakCount
-      }
-      user.lastStreakDate = todayDateOnly;
+      applyWordReview(user, learnedWord, quality);
 
       const learnedWordId = (learnedWord as any)._id;
 
@@ -453,6 +429,149 @@ router.patch('/learned-word/:wordId/review',
       res.status(500).json({
         success: false,
         message: 'Server error recording review'
+      });
+    }
+  }
+);
+
+// @route   POST /api/users/learned-word/:wordId/check-answer
+// @desc    Grade a flashcard answer (word-mode: local typo-tolerant check; definition-mode: LLM
+//          semantic grading with a Levenshtein fallback), and advance SRS/points/streak if this
+//          is the word's first scored attempt this due cycle
+// @access  Private
+router.post('/learned-word/:wordId/check-answer',
+  authenticate,
+  [
+    param('wordId').isMongoId().withMessage('A valid wordId is required'),
+    body('mode').isIn(['word', 'definition']).withMessage('mode must be "word" or "definition"'),
+    body('answer').isString().trim().notEmpty().withMessage('answer is required')
+  ],
+  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const user = req.user;
+      if (!user) {
+        res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
+        return;
+      }
+
+      const { wordId } = req.params;
+      const { mode, answer } = req.body as { mode: 'word' | 'definition'; answer: string };
+
+      await user.populate('learnedWords.wordId');
+      const learnedWord = user.learnedWords.find(w => w.wordId._id.toString() === wordId);
+      if (!learnedWord) {
+        res.status(404).json({
+          success: false,
+          message: 'Word not found in learned words'
+        });
+        return;
+      }
+
+      let verdict: 'correct' | 'partial' | 'incorrect';
+      let semanticMatch: boolean | undefined;
+      let keyConceptPresent: boolean | undefined;
+      let spellingIssue = false;
+      let spellingCorrection: string | null = null;
+      let feedback: string | undefined;
+      let gradedOffline = false;
+
+      if (mode === 'word') {
+        const targets = [learnedWord.lemma, learnedWord.surfaceForm, (learnedWord.wordId as any).word];
+        const result = checkWordModeAgainstTargets(answer, targets);
+        verdict = result.verdict;
+        spellingIssue = result.spellingIssue;
+        spellingCorrection = result.spellingCorrection ?? null;
+      } else {
+        const reference = learnedWord.definition;
+        if (normalize(answer) === normalize(reference)) {
+          verdict = 'correct';
+        } else {
+          const target = learnedWord.surfaceForm || (learnedWord.wordId as any).word;
+          let graded: GradingResult | undefined;
+          try {
+            graded = await gradeDefinitionAnswer(target, reference, answer);
+          } catch (err: any) {
+            // one retry - a single transient timeout/network blip shouldn't drop the user
+            // straight to the much harsher whole-sentence Levenshtein fallback
+            console.warn('Definition grading failed, retrying once:', err?.message || err);
+            try {
+              graded = await gradeDefinitionAnswer(target, reference, answer);
+            } catch (retryErr: any) {
+              console.warn('Definition grading retry failed, falling back to Levenshtein check:', retryErr?.message || retryErr);
+            }
+          }
+
+          if (graded) {
+            verdict = graded.verdict;
+            semanticMatch = graded.semanticMatch;
+            keyConceptPresent = graded.keyConceptPresent;
+            spellingIssue = graded.spellingIssue;
+            spellingCorrection = graded.spellingCorrection;
+            feedback = graded.feedback;
+          } else {
+            verdict = fallbackCheck(answer, reference);
+            gradedOffline = true;
+          }
+        }
+      }
+
+      const quality = verdict === 'incorrect' ? 2 : verdict === 'partial' ? 3 : 4;
+
+      if (mode === 'definition' && verdict === 'correct') {
+        learnedWord.knownWordToDef = true;
+      } else if (mode === 'word' && verdict === 'correct') {
+        learnedWord.knownDefToWord = true;
+      }
+      if (quality < 3) {
+        // a miss resets mastery of both directions, mirroring the repetitions reset below
+        learnedWord.knownWordToDef = false;
+        learnedWord.knownDefToWord = false;
+      }
+
+      const isDue = stripTime(learnedWord.nextReviewDate) <= stripTime(new Date());
+      const scored = isDue;
+      if (scored) {
+        applyWordReview(user, learnedWord, quality);
+      }
+
+      const learnedWordId = (learnedWord as any)._id;
+      await user.save();
+      const updatedLearnedWord = (user.learnedWords as any).id(learnedWordId);
+
+      res.status(200).json({
+        success: true,
+        verdict,
+        semanticMatch,
+        keyConceptPresent,
+        spellingIssue,
+        spellingCorrection,
+        feedback,
+        gradedOffline,
+        quality,
+        scored,
+        learnedWord: updatedLearnedWord,
+        points: user.points,
+        streakCount: user.streakCount,
+        lastStreakDate: user.lastStreakDate
+      });
+    } catch (error) {
+      console.error('Check answer error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error checking answer'
       });
     }
   }

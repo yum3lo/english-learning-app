@@ -138,6 +138,11 @@ export const userAPI = {
     const response = await api.patch(`/users/learned-word/${wordId}/review`, { quality });
     return response.data;
   },
+
+  checkFlashcardAnswer: async (wordId: string, mode: 'word' | 'definition', answer: string) => {
+    const response = await api.post(`/users/learned-word/${wordId}/check-answer`, { mode, answer });
+    return response.data;
+  },
 };
 
 export const authAPI = {
