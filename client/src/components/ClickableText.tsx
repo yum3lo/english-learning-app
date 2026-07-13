@@ -34,8 +34,11 @@ const ClickableText = ({ text, onWordClick, className = '' }: ClickableTextProps
   const handleWordClick = (word: string, offsetIndex: number) => {
     if (!onWordClick) return;
 
-    const cleanWord = word.replace(/[^\w]/g, '').toLowerCase();
-    if (cleanWord.length <= 2) return;
+    // normalize typographic apostrophes to straight ones - the dictionary indexes contractions
+    // like "don't" under the straight form, and this keeps "won't"/"well-known" intact as one
+    // word instead of the old [^\w] strip, which silently dropped apostrophes and hyphens
+    const cleanWord = word.toLowerCase().replace(/[‘’]/g, "'");
+    if (cleanWord.replace(/[-']/g, '').length <= 2) return;
 
     const sentence = getSurroundingSentence(text, offsetIndex);
     onWordClick(cleanWord, sentence || undefined);
@@ -46,13 +49,17 @@ const ClickableText = ({ text, onWordClick, className = '' }: ClickableTextProps
   }
 
   const parts: Array<React.ReactNode> = [];
-  const regex = /\b\w{3,}\b/g;
+  // letter runs optionally joined by an internal apostrophe (straight/curly) or hyphen, so
+  // contractions ("won't") and compounds ("well-known") are treated as one clickable word
+  // instead of being split at the punctuation
+  const regex = /[A-Za-z]+(?:['‘’-][A-Za-z]+)*/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(text)) !== null) {
     const matchStart = match.index;
     const matchText = match[0];
+    if (matchText.replace(/[-'‘’]/g, '').length <= 2) continue;
     if (matchStart > lastIndex) {
       parts.push(text.slice(lastIndex, matchStart));
     }

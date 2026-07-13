@@ -3,6 +3,7 @@ import axios from 'axios';
 import { VocabularyWord, ISense } from '../models/Vocabulary';
 import { disambiguateSense } from '../services/senseDisambiguationService';
 import { getCachedDisambiguation, setCachedDisambiguation } from '../utils/disambiguationCache';
+import { CONTRACTIONS } from '../constants/contractions';
 
 const router = express.Router();
 
@@ -52,20 +53,27 @@ router.get('/:word', async (req, res) => {
       let audioUrl: string | undefined;
       let senses: ISense[] = [];
 
-      try {
-        const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`;
-        const response = await axios.get(apiUrl, { timeout: 5000 });
-        const data = response.data;
-        if (Array.isArray(data) && data.length > 0) {
-          const fetched = data[0];
-          phonetic = fetched.phonetic || fetched.phonetics?.[0]?.text || undefined;
-          audioUrl = fetched.phonetics?.find((p: any) => p.audio)?.audio || undefined;
-          senses = flattenSenses(fetched.meanings);
-        }
-      } catch (err: any) {
-        // dictionaryapi.dev 404s (or errors) for unknown words - fall through with empty senses
-        if (err?.response?.status !== 404) {
-          console.warn('External dictionary lookup failed:', err?.message || err);
+      if (CONTRACTIONS[key]) {
+        // dictionaryapi.dev either lacks contractions entirely ("won't") or indexes an
+        // unrelated sense ("don't" as a noun), so serve the built-in definition directly -
+        // there's exactly one standard meaning, no external lookup or disambiguation needed
+        senses = [{ partOfSpeech: 'contraction', definition: CONTRACTIONS[key], synonyms: [], antonyms: [] }];
+      } else {
+        try {
+          const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`;
+          const response = await axios.get(apiUrl, { timeout: 5000 });
+          const data = response.data;
+          if (Array.isArray(data) && data.length > 0) {
+            const fetched = data[0];
+            phonetic = fetched.phonetic || fetched.phonetics?.[0]?.text || undefined;
+            audioUrl = fetched.phonetics?.find((p: any) => p.audio)?.audio || undefined;
+            senses = flattenSenses(fetched.meanings);
+          }
+        } catch (err: any) {
+          // dictionaryapi.dev 404s (or errors) for unknown words - fall through with empty senses
+          if (err?.response?.status !== 404) {
+            console.warn('External dictionary lookup failed:', err?.message || err);
+          }
         }
       }
 

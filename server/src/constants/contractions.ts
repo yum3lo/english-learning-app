@@ -1,0 +1,65 @@
+// standard English contractions and their expansion/definition. dictionaryapi.dev either
+// lacks these entirely (e.g. "won't") or indexes an unrelated sense (e.g. "don't" as a noun
+// meaning "a prohibition"), so these are served directly instead of going through the
+// external lookup - there's no real ambiguity to disambiguate, each one has a single
+// standard meaning in modern English.
+export const CONTRACTIONS: Record<string, string> = {
+  "aren't": "Contraction of \"are not\".",
+  "can't": "Contraction of \"cannot\".",
+  "couldn't": "Contraction of \"could not\".",
+  "didn't": "Contraction of \"did not\".",
+  "doesn't": "Contraction of \"does not\".",
+  "don't": "Contraction of \"do not\".",
+  "hadn't": "Contraction of \"had not\".",
+  "hasn't": "Contraction of \"has not\".",
+  "haven't": "Contraction of \"have not\".",
+  "isn't": "Contraction of \"is not\".",
+  "mightn't": "Contraction of \"might not\".",
+  "mustn't": "Contraction of \"must not\".",
+  "needn't": "Contraction of \"need not\".",
+  "shan't": "Contraction of \"shall not\".",
+  "shouldn't": "Contraction of \"should not\".",
+  "wasn't": "Contraction of \"was not\".",
+  "weren't": "Contraction of \"were not\".",
+  "won't": "Contraction of \"will not\".",
+  "wouldn't": "Contraction of \"would not\".",
+  "ain't": "Informal contraction of \"am not\", \"is not\", \"are not\", \"has not\", or \"have not\".",
+
+  "i'm": "Contraction of \"I am\".",
+  "you're": "Contraction of \"you are\".",
+  "he's": "Contraction of \"he is\" or \"he has\".",
+  "she's": "Contraction of \"she is\" or \"she has\".",
+  "it's": "Contraction of \"it is\" or \"it has\".",
+  "we're": "Contraction of \"we are\".",
+  "they're": "Contraction of \"they are\".",
+  "that's": "Contraction of \"that is\" or \"that has\".",
+  "who's": "Contraction of \"who is\" or \"who has\".",
+  "what's": "Contraction of \"what is\" or \"what has\".",
+  "where's": "Contraction of \"where is\" or \"where has\".",
+  "there's": "Contraction of \"there is\" or \"there has\".",
+  "here's": "Contraction of \"here is\".",
+
+  "i've": "Contraction of \"I have\".",
+  "you've": "Contraction of \"you have\".",
+  "we've": "Contraction of \"we have\".",
+  "they've": "Contraction of \"they have\".",
+
+  "i'll": "Contraction of \"I will\".",
+  "you'll": "Contraction of \"you will\".",
+  "he'll": "Contraction of \"he will\".",
+  "she'll": "Contraction of \"she will\".",
+  "it'll": "Contraction of \"it will\".",
+  "we'll": "Contraction of \"we will\".",
+  "they'll": "Contraction of \"they will\".",
+
+  "i'd": "Contraction of \"I would\" or \"I had\".",
+  "you'd": "Contraction of \"you would\" or \"you had\".",
+  "he'd": "Contraction of \"he would\" or \"he had\".",
+  "she'd": "Contraction of \"she would\" or \"she had\".",
+  "it'd": "Contraction of \"it would\" or \"it had\".",
+  "we'd": "Contraction of \"we would\" or \"we had\".",
+  "they'd": "Contraction of \"they would\" or \"they had\".",
+
+  "let's": "Contraction of \"let us\".",
+  "y'all": "Contraction of \"you all\" (chiefly Southern US, informal).",
+};
