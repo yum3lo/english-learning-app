@@ -40,11 +40,12 @@ const mapMediaForClient = (mediaDoc: any): any => {
 // @route   GET /api/media/recommendations
 // @desc    Get personalized media recommendations
 // @access  Private
-router.get('/recommendations', 
+router.get('/recommendations',
   authenticate,
   [
     query('type').optional().isIn(['article', 'video']).withMessage('Type must be article or video'),
-    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
+    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be at least 1')
   ],
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -69,6 +70,7 @@ router.get('/recommendations',
 
       const type = req.query.type as string | undefined;
       const limit = parseInt(req.query.limit as string) || 20;
+      const page = parseInt(req.query.page as string) || 1;
 
       const completedIds = user.completedMedia.map(m => m.mediaId);
 
@@ -85,15 +87,18 @@ router.get('/recommendations',
         query.categories = { $in: user.fieldsOfInterest };
       }
 
+      const total = await Media.countDocuments(query);
       const recommendations = await Media.find(query)
         .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
         .limit(limit)
         .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
         count: recommendations.length,
-        recommendations: recommendations.map(mapMediaForClient)
+        recommendations: recommendations.map(mapMediaForClient),
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
       });
     } catch (error) {
       console.error('Get recommendations error:', error);
@@ -301,7 +306,8 @@ router.get('/feed',
   authenticate,
   [
     query('type').optional().isIn(['article', 'video']).withMessage('Type must be article or video'),
-    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
+    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be at least 1')
   ],
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -326,6 +332,7 @@ router.get('/feed',
 
       const type = req.query.type as string | undefined;
       const limit = parseInt(req.query.limit as string) || 12;
+      const page = parseInt(req.query.page as string) || 1;
 
       const query: any = {
         cefrLevel: user.cefrLevel
@@ -339,15 +346,18 @@ router.get('/feed',
         query.categories = { $in: user.fieldsOfInterest };
       }
 
+      const total = await Media.countDocuments(query);
       const feedItems = await Media.find(query)
         .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
         .limit(limit)
         .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
         count: feedItems.length,
-        items: feedItems.map(mapMediaForClient)
+        items: feedItems.map(mapMediaForClient),
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
       });
     } catch (error) {
       console.error('Get feed error:', error);
@@ -401,7 +411,9 @@ router.get('/search',
   authenticate,
   [
     query('q').notEmpty().withMessage('Search query is required'),
-    query('type').optional().isIn(['article', 'video']).withMessage('Type must be article or video')
+    query('type').optional().isIn(['article', 'video']).withMessage('Type must be article or video'),
+    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be at least 1')
   ],
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -417,6 +429,8 @@ router.get('/search',
 
       const searchQuery = req.query.q as string;
       const type = req.query.type as string | undefined;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const page = parseInt(req.query.page as string) || 1;
 
       const query: any = {
         $or: [
@@ -430,14 +444,17 @@ router.get('/search',
         query.type = type;
       }
 
+      const total = await Media.countDocuments(query);
       const results = await Media.find(query)
-        .limit(20)
+        .skip((page - 1) * limit)
+        .limit(limit)
         .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
         count: results.length,
-        results
+        results,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
       });
     } catch (error) {
       console.error('Search media error:', error);
@@ -454,10 +471,24 @@ router.get('/search',
 // @access  Private
 router.get('/category/:category',
   authenticate,
+  [
+    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be at least 1')
+  ],
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
       const { category } = req.params;
-      
+
       const validCategories: readonly string[] = CATEGORIES;
       if (!validCategories.includes(category)) {
         res.status(400).json({
@@ -477,19 +508,27 @@ router.get('/category/:category',
         return;
       }
 
-      const media = await Media.find({
+      const limit = parseInt(req.query.limit as string) || 20;
+      const page = parseInt(req.query.page as string) || 1;
+
+      const mediaQuery = {
         categories: category,
         cefrLevel: user.cefrLevel
-      })
+      };
+
+      const total = await Media.countDocuments(mediaQuery);
+      const media = await Media.find(mediaQuery)
         .sort({ createdAt: -1 })
-        .limit(20)
+        .skip((page - 1) * limit)
+        .limit(limit)
         .select('-vocabularyWords');
 
       res.status(200).json({
         success: true,
         count: media.length,
         category,
-        media
+        media,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
       });
     } catch (error) {
       console.error('Get media by category error:', error);
