@@ -2,13 +2,11 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import Navbar from "../components/Navbar";
 import WelcomePopup from "../components/WelcomePopup";
-import { ToastContainer } from "react-toastify";
 import Footer from "../components/Footer";
-import "react-toastify/dist/ReactToastify.css";
 
 const MainLayout = () => {
   const location = useLocation();
-  
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
@@ -22,7 +20,6 @@ const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
-      <ToastContainer />
     </div>
   );
 };
