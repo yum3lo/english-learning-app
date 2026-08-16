@@ -23,6 +23,8 @@ export const CATEGORIES = [
 
 export const CEFR_LEVELS = ['B1', 'B2', 'C1', 'C2'] as const;
 
+export const POINTS_PER_LEVEL = 200;
+
 export const MEDIA_TYPES = ['video', 'article'] as const;
 
 export const DURATIONS = ['Short (< 15 min)', 'Medium (15-30 min)', 'Long (> 30 min)'] as const;

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CATEGORIES } from '@/constants/categories';
+import { CATEGORIES, POINTS_PER_LEVEL } from '@/constants/categories';
 import { useToast } from '@/hooks/use-toast';
 
 const ProfilePage = () => {
@@ -64,7 +64,7 @@ const ProfilePage = () => {
   ];
 
   const currentLevelPoints = user.points;
-  const pointsNeededForNextLevel = 200;
+  const pointsNeededForNextLevel = POINTS_PER_LEVEL;
   const progressPercentage = ((currentLevelPoints || 0) / pointsNeededForNextLevel) * 100;
   
   const getNextLevel = (currentLevel: string) => {
