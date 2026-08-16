@@ -33,11 +33,19 @@ api.interceptors.response.use(
   }
 );
 
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export const mediaAPI = {
   getRecommendations: async (params: {
     type?: 'article' | 'video';
     limit?: number;
-  }): Promise<{ success: boolean; count: number; recommendations: MediaItem[] }> => {
+    page?: number;
+  }): Promise<{ success: boolean; count: number; recommendations: MediaItem[]; pagination: Pagination }> => {
     const response = await api.get('/media/recommendations', { params });
     return response.data;
   },
@@ -45,7 +53,8 @@ export const mediaAPI = {
   getFeed: async (params: {
     type?: 'article' | 'video';
     limit?: number;
-  }): Promise<{ success: boolean; count: number; items: MediaItem[] }> => {
+    page?: number;
+  }): Promise<{ success: boolean; count: number; items: MediaItem[]; pagination: Pagination }> => {
     const response = await api.get('/media/feed', { params });
     return response.data;
   },
@@ -55,15 +64,15 @@ export const mediaAPI = {
     return response.data;
   },
 
-  search: async (query: string, type?: 'article' | 'video'): Promise<{ success: boolean; count: number; results: MediaItem[] }> => {
+  search: async (query: string, type?: 'article' | 'video', params?: { limit?: number; page?: number }): Promise<{ success: boolean; count: number; results: MediaItem[]; pagination: Pagination }> => {
     const response = await api.get('/media/search', {
-      params: { q: query, type }
+      params: { q: query, type, ...params }
     });
     return response.data;
   },
 
-  getByCategory: async (category: string): Promise<{ success: boolean; count: number; category: string; media: MediaItem[] }> => {
-    const response = await api.get(`/media/category/${category}`);
+  getByCategory: async (category: string, params?: { limit?: number; page?: number }): Promise<{ success: boolean; count: number; category: string; media: MediaItem[]; pagination: Pagination }> => {
+    const response = await api.get(`/media/category/${category}`, { params });
     return response.data;
   },
   fetchGuardianArticles: async (params?: { category?: string; limit?: number }) => {
@@ -89,13 +98,20 @@ export const mediaAPI = {
   },
 };
 
+export const getErrorMessage = (error: unknown, fallback: string): string => {
+  if (axios.isAxiosError(error)) {
+    return (error.response?.data as { message?: string } | undefined)?.message || fallback;
+  }
+  return fallback;
+};
+
 export const userAPI = {
   getProfile: async () => {
     try {
       const response = await api.get('/users/profile');
       return response.data;
-    } catch (error: any) {
-      if (error.response && (error.response.status === 404 || error.response.status === 401)) {
+    } catch (error) {
+      if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 401)) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
         window.location.href = '/login';
@@ -106,6 +122,16 @@ export const userAPI = {
 
   updateProfile: async (data: { name?: string; email?: string }) => {
     const response = await api.put('/users/profile', data);
+    return response.data;
+  },
+
+  deleteAccount: async () => {
+    const response = await api.delete('/users/profile');
+    return response.data;
+  },
+
+  recordWordLearned: async () => {
+    const response = await api.post('/users/progress/word-learned');
     return response.data;
   },
 
@@ -150,9 +176,10 @@ export const authAPI = {
     name: string;
     email: string;
     password: string;
+    confirmPassword: string;
     cefrLevel: CEFRLevel;
     fieldsOfInterest: string[];
-    consentAI: boolean;
+    createdAt: string;
   }) => {
     const response = await api.post('/auth/register', userData);
     return response.data;
@@ -164,21 +191,6 @@ export const authAPI = {
   },
   verifyToken: async () => {
     const response = await api.get('/auth/verify');
-    return response.data;
-  },
-};
-
-export const syncAPI = {
-  getStatus: async () => {
-    const response = await api.get('/sync/status');
-    return response.data;
-  },
-
-  triggerSync: async (params?: {
-    categories?: string[];
-    articlesPerCategory?: number;
-  }) => {
-    const response = await api.post('/sync/trigger', params);
     return response.data;
   },
 };
