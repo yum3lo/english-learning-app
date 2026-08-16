@@ -2,7 +2,7 @@ import { useToast } from '@/hooks/use-toast';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CEFRLevel } from '@/constants/categories';
-import { userAPI } from '@/services/api';
+import { authAPI, userAPI, getErrorMessage } from '@/services/api';
 
 import type { PopulatedVocabularyWord, MasteryStage, DictionarySense, SourceMediaType } from '@/data/vocabulary';
 interface LearnedWord {
@@ -141,36 +141,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (credentials: LoginCredentials): Promise<void> => {
     try {
       setIsLoading(true);
-      
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
 
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
-
-      const data = await response.json();
+      const data = await authAPI.login(credentials);
       localStorage.setItem('authToken', data.token);
-
-      const profileResponse = await fetch('/api/users/profile', {
-        headers: {
-          'Authorization': `Bearer ${data.token}`
-        }
-      });
-
-      if (!profileResponse.ok) {
-        localStorage.removeItem('authToken');
-        throw new Error('Failed to fetch user profile');
-      }
-
-      const profileData = await profileResponse.json();
-      localStorage.setItem('userData', JSON.stringify(profileData.user));
-      setUser(profileData.user);
+      localStorage.setItem('userData', JSON.stringify(data.user));
+      setUser(data.user);
 
       toast({
         title: "Logged in successfully!",
@@ -178,15 +153,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
     } catch (error) {
       console.error('Login error:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Invalid credentials. Please try again.';
-      
+
+      const errorMessage = getErrorMessage(error, 'Invalid credentials. Please try again.');
+
       toast({
         variant: "destructive",
         title: "Login failed",
         description: errorMessage,
       });
-      
+
       throw error;
     } finally {
       setIsLoading(false);
@@ -196,24 +171,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (credentials: RegisterCredentials): Promise<void> => {
     try {
       setIsLoading(true);
-      
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
 
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
+      const data = await authAPI.register(credentials);
 
-      const data = await response.json();
-      
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('userData', JSON.stringify(data.user));
-      
+
       toast({
         title: "Registered successfully!",
         description: "Welcome to English Learning App. You can now start your learning journey.",
@@ -222,15 +185,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
     } catch (error) {
       console.error('Registration error:', error);
-      
-      const errorMessage = error instanceof Error ? error.message : 'Email address already in use.';
-      
+
+      const errorMessage = getErrorMessage(error, 'Email address already in use.');
+
       toast({
         variant: "destructive",
         title: "Registration failed",
         description: errorMessage,
       });
-      
+
       throw error;
     } finally {
       setIsLoading(false);
@@ -262,25 +225,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const recordWordLearned = async (): Promise<void> => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
+      const data = await userAPI.recordWordLearned();
 
-      const response = await fetch('/api/users/progress/word-learned', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to record word learned');
-      }
-
-      const data = await response.json();
-      
       if (user) {
         const updatedUser = { ...user, wordsLearned: data.wordsLearned };
         setUser(updatedUser);
@@ -357,26 +303,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     allSenses?: DictionarySense[];
   }) => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch('/api/users/learned-word', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(wordData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add word to learned words');
-      }
-
-      const data = await response.json();
+      const data = await userAPI.addLearnedWord(wordData);
       const returnedLearnedWord: LearnedWord = data.learnedWord;
 
       if (user) {
@@ -399,7 +326,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add word to learned words. Please try again.",
+        description: getErrorMessage(error, "Failed to add word to learned words. Please try again."),
       });
       throw error;
     }
@@ -485,23 +412,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const deleteAccount = async (): Promise<void> => {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch('/api/users/profile', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete account');
-      }
+      await userAPI.deleteAccount();
 
       localStorage.removeItem('authToken');
       localStorage.removeItem('userData');
@@ -517,7 +428,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete account. Please try again.",
+        description: getErrorMessage(error, "Failed to delete account. Please try again."),
       });
       throw error;
     }
