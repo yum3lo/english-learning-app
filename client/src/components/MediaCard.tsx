@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Play } from 'lucide-react';
+import { BookOpen, Play, CheckCircle } from 'lucide-react';
 import { 
   Card, 
   CardHeader, 
@@ -48,6 +48,14 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
             <div className='absolute top-2 left-2 bg-foreground text-background px-2 py-1 rounded text-sm font-semibold'>
               {item.cefrLevel}
             </div>
+            {item.isCompleted && (
+              <div
+                className='absolute top-2 right-2 bg-secondary text-secondary-foreground rounded-full p-1'
+                title="Completed"
+              >
+                <CheckCircle className="w-4 h-4" />
+              </div>
+            )}
             {item.duration && (
               <div className='absolute bottom-2 right-2 bg-muted px-2 py-1 rounded text-sm'>
                 {formatDuration(item.duration)}

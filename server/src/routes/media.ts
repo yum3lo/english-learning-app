@@ -6,17 +6,17 @@ import guardianService from '../api/guardianAPI';
 import youtubeService from '../api/youtubeAPI';
 import { CATEGORIES, CEFRLevel } from '../constants/categories';
 import { classifyTextWithOpenAI } from '../services/cefrClassificationService';
-import { formatTranscriptWithOpenAI } from '../services/transcriptFormattingService';
 import { stripHtml, decodeHtmlEntities } from '../utils/text';
 
 const router = express.Router();
 
-const mapMediaForClient = (mediaDoc: any): any => {
+const mapMediaForClient = (mediaDoc: any, completedIds?: Set<string>): any => {
   const contentObj: any = {};
   if (mediaDoc.content && (mediaDoc.content.content || mediaDoc.content.videoUrl || mediaDoc.content.transcript)) {
     if (mediaDoc.content.content) contentObj.content = mediaDoc.content.content;
     if (mediaDoc.content.videoUrl) contentObj.videoUrl = mediaDoc.content.videoUrl;
     if (mediaDoc.content.transcript) contentObj.transcript = stripHtml(mediaDoc.content.transcript);
+    if (mediaDoc.content.transcriptSegments?.length) contentObj.transcriptSegments = mediaDoc.content.transcriptSegments;
   }
 
   return {
@@ -33,7 +33,8 @@ const mapMediaForClient = (mediaDoc: any): any => {
     duration: mediaDoc.duration,
     createdAt: mediaDoc.createdAt,
     content: Object.keys(contentObj).length ? contentObj : undefined,
-    vocabularyWords: mediaDoc.vocabularyWords || []
+    vocabularyWords: mediaDoc.vocabularyWords || [],
+    isCompleted: completedIds ? completedIds.has(String(mediaDoc._id)) : undefined
   };
 };
 
@@ -72,11 +73,10 @@ router.get('/recommendations',
       const limit = parseInt(req.query.limit as string) || 20;
       const page = parseInt(req.query.page as string) || 1;
 
-      const completedIds = user.completedMedia.map(m => m.mediaId);
+      const completedIds = new Set(user.completedMedia.map(m => m.mediaId));
 
       const query: any = {
-        cefrLevel: user.cefrLevel,
-        _id: { $nin: completedIds }
+        cefrLevel: user.cefrLevel
       };
 
       if (type) {
@@ -97,7 +97,7 @@ router.get('/recommendations',
       res.status(200).json({
         success: true,
         count: recommendations.length,
-        recommendations: recommendations.map(mapMediaForClient),
+        recommendations: recommendations.map(doc => mapMediaForClient(doc, completedIds)),
         pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
       });
     } catch (error) {
@@ -235,21 +235,13 @@ router.get('/youtube/fetch',
       const newVideos = videos.filter(v => v.url && !existingUrls.has(v.url));
 
       // processing videos concurrently - each one needs a transcript fetch plus
-      // two OpenAI calls (formatting + classification), which is slow done sequentially
+      // an OpenAI classification call, which is slow done sequentially
       const savedVideoResults = await Promise.all(newVideos.map(async (video) => {
         try {
           const videoId = video.url.split('v=')[1];
-          let transcript = videoId ? await youtubeService.fetchTranscriptText(videoId) : undefined;
-
-          // auto-generated captions have no punctuation/paragraphs, so reformat for readability
-          // and so sentence-based features (e.g. "example in text") work correctly
-          if (transcript) {
-            try {
-              transcript = await formatTranscriptWithOpenAI(transcript);
-            } catch (err) {
-              console.error('Error formatting transcript:', err);
-            }
-          }
+          const fetchedTranscript = videoId ? await youtubeService.fetchTranscript(videoId) : undefined;
+          const transcript = fetchedTranscript?.text;
+          const transcriptSegments = fetchedTranscript?.segments;
 
           // classifying before saving so the client never sees a stale UNCLASSIFIED card
           let cefrLevel: CEFRLevel = 'UNCLASSIFIED';
@@ -269,7 +261,7 @@ router.get('/youtube/fetch',
             source: video.source || 'YouTube',
             description: video.description,
             duration: video.duration,
-            content: { videoUrl: video.url, transcript },
+            content: { videoUrl: video.url, transcript, transcriptSegments },
             cefrLevel,
             categories: video.categories
           });
@@ -356,7 +348,7 @@ router.get('/feed',
       res.status(200).json({
         success: true,
         count: feedItems.length,
-        items: feedItems.map(mapMediaForClient),
+        items: feedItems.map(doc => mapMediaForClient(doc)),
         pagination: { page, limit, total, totalPages: Math.ceil(total / limit) }
       });
     } catch (error) {
