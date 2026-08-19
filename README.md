@@ -142,7 +142,7 @@ This project uses four (for now) external APIs.
    - The server converts returned article HTML to a Markdown-like/plain-text representation and filters out very short/teaser items (configurable via `GUARDIAN_MIN_CONTENT_LENGTH`).
    - The server's public endpoint to trigger a fetch of new Guardian articles is (authenticated): `GET /api/media/guardian/fetch` fetches recent articles and persists only unseen articles to the `media` collection.
 
-<img src="docs/images/guardian.png" width="300" alt="External content ingestion flow diagram (Guardian articles)">
+<img width="250" alt="External content ingestion flow diagram (Guardian articles)" src="https://github.com/user-attachments/assets/f58a3a17-65d7-4ade-b862-b6f4aaa3064c" />
 
 ### Dictionary API 
 
@@ -161,7 +161,7 @@ This project uses four (for now) external APIs.
 3. If the word has one sense, or no sentence context was given, just return sense 0.
 4. If it has multiple senses **and** a sentence was given, disambiguate via an LLM call (cached by `(word, sentence)` so repeat lookups of the same phrase are free).
 
-<img src="docs/images/dictionary-lookup-flow.png" width="300" alt="Dictionary lookup flow diagram">
+<img width="450" alt="Dictionary lookup flow diagram" src="https://github.com/user-attachments/assets/71e9cb6f-09f5-4e89-8b32-3e68b9017fc1" />
 
 ### OpenAI API
 
@@ -186,7 +186,7 @@ This project uses four (for now) external APIs.
    - Transcripts are best-effort: the server tries to download the video's auto-generated captions (via the `youtube-transcript` package) and stores the plain text alongside the video. Not every video has captions available, so some videos may be saved without a transcript.
    - Auto-generated captions have no punctuation or paragraph breaks, so before saving, the server uses the OpenAI API to add punctuation, capitalization, and paragraph breaks to the transcript (without changing any words). If this formatting step fails, the raw (unpunctuated) transcript is saved instead.
 
-<img src="docs/images/youtube.png" width="300" alt="External content ingestion flow diagram (YouTube videos)">
+<img width="250" alt="External content ingestion flow diagram (YouTube videos)" src="https://github.com/user-attachments/assets/e988451a-af4c-4c08-89ba-c053ca18d42c" />
 
 ## CEFR Classification
 
@@ -239,7 +239,7 @@ Learned words are reviewed using a simplified SM-2-style algorithm (`server/src/
 
 Flashcard reviews are graded automatically via `POST /api/users/learned-word/:wordId/check-answer` (word mode uses normalized/Levenshtein matching; definition mode uses an LLM semantic-match call), which derives the SRS `quality` and applies it through the shared `reviewService.ts`, so scheduling, points, and streaks can't drift between review paths. Points and scheduling only advance on the first attempt on a due word each cycle, further attempts the same day update mastery flags but don't double-count.
 
-<img src="docs/images/srs-flow.png" width="300" alt="Spaced repetition (SRS) flow diagram">
+<img width="550" alt="Spaced repetition (SRS) flow diagram" src="https://github.com/user-attachments/assets/f5457389-6f4f-4071-8cd3-3e682e650fe7" />
 
 ## Word-Click -> Dictionary -> "Add to Learned Words" Flow
 
@@ -261,4 +261,4 @@ ClickableText (splits text into clickable word spans, computes surrounding sente
 
 The sense-disambiguation call runs once, at the moment the word is looked up in context, and its result (definition, part of speech, pronunciation, etc.) is frozen onto the learned-word entry — so each user's learned copy of a word remembers the exact sense that applied when they learned it, even though the shared dictionary cache may hold many senses for that word.
 
-<img src="docs/images/word-click-flow.png" width="100%" alt="Word-click -> dictionary -> add to learned words flow diagram">
+<img width="100%" alt="Word-click flow diagram" src="https://github.com/user-attachments/assets/91f96439-f7aa-4396-a6df-763b0c0afa8a" />
