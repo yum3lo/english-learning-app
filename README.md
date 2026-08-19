@@ -183,8 +183,8 @@ This project uses four (for now) external APIs.
       - With a `category` query param, it searches that category only.
       - Without one, it fetches a diverse mix across the requesting user's `fieldsOfInterest` (up to 5 categories, falling back to `General` if none are set).
       - Either way, only unseen videos (by URL) are persisted to the `media` collection.
-   - Transcripts are best-effort: the server tries to download the video's auto-generated captions (via the `youtube-transcript` package) and stores the plain text alongside the video. Not every video has captions available, so some videos may be saved without a transcript.
-   - Auto-generated captions have no punctuation or paragraph breaks, so before saving, the server uses the OpenAI API to add punctuation, capitalization, and paragraph breaks to the transcript (without changing any words). If this formatting step fails, the raw (unpunctuated) transcript is saved instead.
+   - Transcripts are best-effort: the server tries to download the video's captions (via the `youtube-transcript` package) and stores them alongside the video, both as plain text and as timestamped segments (`{ start, duration, text }[]`) used to sync the transcript panel to playback. Not every video has captions available, so some videos may be saved without a transcript.
+   - Captions are stored exactly as YouTube returns them — no AI reformatting is applied. Quality therefore depends on the track: some channels provide punctuated, capitalized captions; others only have raw auto-generated captions with no punctuation.
 
 <img width="250" alt="External content ingestion flow diagram (YouTube videos)" src="https://github.com/user-attachments/assets/e988451a-af4c-4c08-89ba-c053ca18d42c" />
 
