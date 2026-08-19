@@ -16,6 +16,13 @@ export interface MediaItem {
   categories: string[];
   duration?: string | number;
   createdAt: string;
+  isCompleted?: boolean;
+}
+
+export interface TranscriptSegment {
+  start: number;
+  duration: number;
+  text: string;
 }
 
 export interface MediaContent {
@@ -23,6 +30,7 @@ export interface MediaContent {
   content?: string;
   videoUrl?: string;
   transcript?: string;
+  transcriptSegments?: TranscriptSegment[];
 }
 
 export interface UnifiedMediaItem extends MediaItem {
