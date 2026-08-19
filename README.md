@@ -142,6 +142,8 @@ This project uses four (for now) external APIs.
    - The server converts returned article HTML to a Markdown-like/plain-text representation and filters out very short/teaser items (configurable via `GUARDIAN_MIN_CONTENT_LENGTH`).
    - The server's public endpoint to trigger a fetch of new Guardian articles is (authenticated): `GET /api/media/guardian/fetch` fetches recent articles and persists only unseen articles to the `media` collection.
 
+<img src="docs/images/guardian.png" width="300" alt="External content ingestion flow diagram (Guardian articles)">
+
 ### Dictionary API 
 
 - Available at: https://api.dictionaryapi.dev
@@ -151,6 +153,15 @@ This project uses four (for now) external APIs.
 - Notes:
    - Cached canonical data is stored with a default CEFR level till AI processing of text will be implemented.
    - External dictionary API usage is rate-limited by the external service, caching reduces repeated traffic.
+
+#### `GET /:word?sentence=...` flow
+
+1. Look up (or lazily fetch-and-cache) the word's `VocabularyWord` doc, including all its senses from `dictionaryapi.dev`.
+2. Contractions ("don't", "y'all", ...) skip the external API entirely and are served from a static table (`constants/contractions.ts`) — `dictionaryapi.dev` either lacks them or returns an unrelated sense.
+3. If the word has one sense, or no sentence context was given, just return sense 0.
+4. If it has multiple senses **and** a sentence was given, disambiguate via an LLM call (cached by `(word, sentence)` so repeat lookups of the same phrase are free).
+
+<img src="docs/images/dictionary-lookup-flow.png" width="300" alt="Dictionary lookup flow diagram">
 
 ### OpenAI API
 
@@ -174,6 +185,8 @@ This project uses four (for now) external APIs.
       - Either way, only unseen videos (by URL) are persisted to the `media` collection.
    - Transcripts are best-effort: the server tries to download the video's auto-generated captions (via the `youtube-transcript` package) and stores the plain text alongside the video. Not every video has captions available, so some videos may be saved without a transcript.
    - Auto-generated captions have no punctuation or paragraph breaks, so before saving, the server uses the OpenAI API to add punctuation, capitalization, and paragraph breaks to the transcript (without changing any words). If this formatting step fails, the raw (unpunctuated) transcript is saved instead.
+
+<img src="docs/images/youtube.png" width="300" alt="External content ingestion flow diagram (YouTube videos)">
 
 ## CEFR Classification
 
@@ -215,3 +228,37 @@ await cefrAPI.classifyAll();
 // Check progress
 const status = await cefrAPI.getStatus();
 ```
+
+## Spaced Repetition (SRS)
+
+Learned words are reviewed using a simplified SM-2-style algorithm (`server/src/utils/spacedRepetition.ts`), moving each word through three stages: **seedling** -> **growing** -> **bloomed**.
+
+- A missed review (`quality < 3`) resets `repetitions` to 0 and `interval` back to 1 (starting over).
+- A successful review (`quality >= 3`) increments `repetitions`, nudges `easeFactor` (floored at 1.3), and grows the `interval`, the first two successful reviews use fixed lookup tables, after which `interval = round(interval * easeFactor)`.
+- A word only reaches **bloomed** once it's survived enough repetitions *and* the user has demonstrated both recall directions (word -> definition and definition -> word), not just repetition count alone.
+
+Flashcard reviews are graded automatically via `POST /api/users/learned-word/:wordId/check-answer` (word mode uses normalized/Levenshtein matching; definition mode uses an LLM semantic-match call), which derives the SRS `quality` and applies it through the shared `reviewService.ts`, so scheduling, points, and streaks can't drift between review paths. Points and scheduling only advance on the first attempt on a due word each cycle, further attempts the same day update mastery flags but don't double-count.
+
+<img src="docs/images/srs-flow.png" width="300" alt="Spaced repetition (SRS) flow diagram">
+
+## Word-Click -> Dictionary -> "Add to Learned Words" Flow
+
+This is the app's core learning loop, from clicking an unfamiliar word in an article or video transcript to it landing in the user's vocabulary garden:
+
+```
+ClickableText (splits text into clickable word spans, computes surrounding sentence)
+  -> InteractiveMarkdownRenderer / VideoPlayer transcript (wraps markdown/transcript text nodes)
+    -> MediaPage / VocabularyPage (onWordClick handler)
+      -> useDictionary.handleWordClick(word, sentence, mediaType)
+        -> DictionaryService.getWordWithFallback -> GET /api/dictionary/:word?sentence=...
+          (server disambiguates sense here, once)
+        -> DictionaryPopup renders the result, definition, pronunciation, other senses
+        -> user clicks "Plant in my garden"
+          -> useDictionary.handleAddToLearned (reuses the already-fetched context — no 2nd model call)
+            -> AuthContext.addLearnedWord -> POST /api/users/learned-word
+              -> merges into user.learnedWords + localStorage, success toast
+```
+
+The sense-disambiguation call runs once, at the moment the word is looked up in context, and its result (definition, part of speech, pronunciation, etc.) is frozen onto the learned-word entry — so each user's learned copy of a word remembers the exact sense that applied when they learned it, even though the shared dictionary cache may hold many senses for that word.
+
+<img src="docs/images/word-click-flow.png" width="100%" alt="Word-click -> dictionary -> add to learned words flow diagram">
