@@ -16,7 +16,7 @@ const MainLayout = () => {
       <div className="h-16">
         <Navbar />
       </div>
-      <main className="flex-grow overflow-x-hidden">
+      <main className="flex-grow">
         <Outlet />
       </main>
       <Footer />
