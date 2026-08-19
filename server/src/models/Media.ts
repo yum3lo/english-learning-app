@@ -14,6 +14,7 @@ export interface IMedia extends Document {
     content?: string;
     videoUrl?: string;
     transcript?: string;
+    transcriptSegments?: { start: number; duration: number; text: string }[];
   };
   cefrLevel: CEFRLevel;
   categories: string[];
@@ -59,7 +60,13 @@ const mediaSchema = new Schema<IMedia>({
   content: {
     content: { type: String, trim: true },
     videoUrl: { type: String, trim: true },
-    transcript: { type: String, trim: true }
+    transcript: { type: String, trim: true },
+    transcriptSegments: [{
+      _id: false,
+      start: { type: Number, required: true },
+      duration: { type: Number, required: true },
+      text: { type: String, required: true, trim: true }
+    }]
   },
   cefrLevel: {
     type: String,
