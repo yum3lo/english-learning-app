@@ -156,7 +156,7 @@ const RegisterPage = () => {
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
                   name="name"
@@ -165,7 +165,7 @@ const RegisterPage = () => {
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Enter your full name"
+                  placeholder="Enter your name"
                   className={errors.name ? "border-destructive" : ""}
                 />
                 {errors.name && (

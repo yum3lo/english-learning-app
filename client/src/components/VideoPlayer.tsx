@@ -223,7 +223,7 @@ const VideoPlayer = ({
                     ref={isActive ? activeSegmentRef : undefined}
                     onClick={() => handleSegmentClick(segment.start)}
                     className={`px-2.5 py-2 rounded-lg cursor-pointer transition-colors ${
-                      isActive ? 'bg-secondary/15 border-l-2 border-secondary' : 'hover:bg-muted'
+                      isActive ? 'bg-secondary/15' : 'hover:bg-muted'
                     }`}
                   >
                     <div className={`font-mono text-[10px] mb-0.5 ${isActive ? 'text-secondary' : 'text-muted-foreground'}`}>
