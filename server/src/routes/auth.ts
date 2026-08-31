@@ -6,11 +6,11 @@ import { CATEGORIES } from '../constants/categories';
 
 const router = express.Router();
 
-const generateToken = (userId: string): string => {
+const generateToken = (userId: string, rememberMe: boolean = false): string => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined');
   }
-  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: rememberMe ? '30d' : '1d' });
 };
 
 // @route   POST /api/auth/register
@@ -67,7 +67,7 @@ router.post('/register', [
 
     await user.save();
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, true);
 
     res.status(201).json({
       success: true,
@@ -83,6 +83,8 @@ router.post('/register', [
         wordsLearned: user.wordsLearned,
         articlesRead: user.articlesRead,
         videosWatched: user.videosWatched,
+        learnedWords: user.learnedWords,
+        completedMedia: user.completedMedia,
         streakCount: user.streakCount,
         lastStreakDate: user.lastStreakDate,
         createdAt: user.createdAt
@@ -106,7 +108,11 @@ router.post('/login', [
     .withMessage('Please provide a valid email'),
   body('password')
     .notEmpty()
-    .withMessage('Password is required')
+    .withMessage('Password is required'),
+  body('rememberMe')
+    .optional()
+    .isBoolean()
+    .withMessage('rememberMe must be a boolean')
 ], async (req: Request, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
@@ -119,9 +125,9 @@ router.post('/login', [
       return;
     }
 
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email }).select('+password').populate('learnedWords.wordId');
     if (!user) {
       res.status(401).json({
         success: false,
@@ -139,7 +145,7 @@ router.post('/login', [
       return;
     }
 
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, Boolean(rememberMe));
 
     res.status(200).json({
       success: true,
@@ -155,6 +161,8 @@ router.post('/login', [
         wordsLearned: user.wordsLearned,
         articlesRead: user.articlesRead,
         videosWatched: user.videosWatched,
+        learnedWords: user.learnedWords,
+        completedMedia: user.completedMedia,
         streakCount: user.streakCount,
         lastStreakDate: user.lastStreakDate,
         createdAt: user.createdAt

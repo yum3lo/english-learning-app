@@ -2,6 +2,7 @@ import axios from 'axios';
 import type { MediaItem, UnifiedMediaItem } from '@/data/mediaData';
 import type { CEFRLevel } from '@/constants/categories';
 import type { DictionarySense, SourceMediaType } from '@/data/vocabulary';
+import { authStorage } from '@/lib/authStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -14,7 +15,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
+  const token = authStorage.getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -25,8 +26,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
+      authStorage.clear();
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -112,8 +112,7 @@ export const userAPI = {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && (error.response?.status === 404 || error.response?.status === 401)) {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
+        authStorage.clear();
         window.location.href = '/login';
       }
       throw error;
@@ -185,7 +184,7 @@ export const authAPI = {
     return response.data;
   },
 
-  login: async (credentials: { email: string; password: string }) => {
+  login: async (credentials: { email: string; password: string; rememberMe?: boolean }) => {
     const response = await api.post('/auth/login', credentials);
     return response.data;
   },

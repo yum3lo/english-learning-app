@@ -12,6 +12,7 @@ const LoginPage = () => {
     email: '',
     password: ''
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   
@@ -61,7 +62,7 @@ const LoginPage = () => {
     
     setIsLoading(true);
     try {
-      await login(formData);
+      await login({ ...formData, rememberMe });
       
       // redirecting the user to the wanted page or home page
       const from = location.state?.from?.pathname || '/';
@@ -136,9 +137,11 @@ const LoginPage = () => {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Checkbox 
+                <Checkbox
                   id="remember-me"
                   name="remember-me"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked === true)}
                 />
                 <Label htmlFor="remember-me" className="text-sm font-normal">
                   Remember me

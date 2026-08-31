@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CEFRLevel } from '@/constants/categories';
 import { authAPI, userAPI, getErrorMessage } from '@/services/api';
+import { authStorage } from '@/lib/authStorage';
 
 import type { PopulatedVocabularyWord, MasteryStage, DictionarySense, SourceMediaType } from '@/data/vocabulary';
 interface LearnedWord {
@@ -65,6 +66,7 @@ interface User {
 interface LoginCredentials {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 interface RegisterCredentials {
@@ -119,17 +121,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const userData = localStorage.getItem('userData');
-        
+        const token = authStorage.getToken();
+        const userData = authStorage.getUser();
+
         if (token && userData) {
           const parsedUser = JSON.parse(userData);
           setUser(parsedUser);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userData');
+        authStorage.clear();
       } finally {
         setIsLoading(false);
       }
@@ -143,8 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
 
       const data = await authAPI.login(credentials);
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('userData', JSON.stringify(data.user));
+      authStorage.setSession(data.token, JSON.stringify(data.user), Boolean(credentials.rememberMe));
       setUser(data.user);
 
       toast({
@@ -174,8 +174,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const data = await authAPI.register(credentials);
 
-      localStorage.setItem('authToken', data.token);
-      localStorage.setItem('userData', JSON.stringify(data.user));
+      authStorage.setSession(data.token, JSON.stringify(data.user), true);
 
       toast({
         title: "Registered successfully!",
@@ -202,7 +201,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = (): void => {
     try {
-      localStorage.clear();
+      authStorage.clear();
       setUser(null);
       window.location.replace('/login');
     } catch (error) {
@@ -215,7 +214,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
-      localStorage.setItem('userData', JSON.stringify(updatedUser));
+      authStorage.updateUser(JSON.stringify(updatedUser));
       toast({
         title: "Profile updated successfully!",
         description: "Your profile information has been updated.",
@@ -230,7 +229,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (user) {
         const updatedUser = { ...user, wordsLearned: data.wordsLearned };
         setUser(updatedUser);
-        localStorage.setItem('userData', JSON.stringify(updatedUser));
+        authStorage.updateUser(JSON.stringify(updatedUser));
       }
     } catch (error) {
       console.error('Record word learned error:', error);
@@ -239,7 +238,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const recordMediaCompleted = async (mediaType: 'article' | 'video', mediaId: string): Promise<void> => {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = authStorage.getToken();
       if (!token) {
         throw new Error('No authentication token found');
       }
@@ -271,7 +270,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           ]
         };
         setUser(updatedUser);
-        localStorage.setItem('userData', JSON.stringify(updatedUser));
+        authStorage.updateUser(JSON.stringify(updatedUser));
       }
 
       toast({
@@ -314,7 +313,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           learnedWords: [...(user.learnedWords || []), returnedLearnedWord]
         };
         setUser(updatedUser);
-        localStorage.setItem('userData', JSON.stringify(updatedUser));
+        authStorage.updateUser(JSON.stringify(updatedUser));
       }
 
       toast({
@@ -349,7 +348,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           lastStreakDate: data.lastStreakDate,
         };
         setUser(updatedUser);
-        localStorage.setItem('userData', JSON.stringify(updatedUser));
+        authStorage.updateUser(JSON.stringify(updatedUser));
       }
 
       return { stage: updatedLearnedWord.stage };
@@ -385,7 +384,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           lastStreakDate: data.lastStreakDate,
         };
         setUser(updatedUser);
-        localStorage.setItem('userData', JSON.stringify(updatedUser));
+        authStorage.updateUser(JSON.stringify(updatedUser));
       }
 
       return {
@@ -414,8 +413,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await userAPI.deleteAccount();
 
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
+      authStorage.clear();
       setUser(null);
 
       toast({
