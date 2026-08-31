@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import PageContainer from '@/components/PageContainer';
 import { Button } from '@/components/ui/button';
 import { isDue } from '@/lib/srs';
 
@@ -53,43 +54,41 @@ const FlashcardsPage = () => {
   const dueCount = words.filter(w => isDue(w.nextReviewDate)).length;
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
+    <PageContainer>
+      <Button
+        variant="ghost"
+        onClick={() => navigate(-1)}
+        className="mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </Button>
 
-        <div className="mb-8">
-          <PageHeader
-            icon={Zap}
-            title="Flashcard practice"
-            description={
-              dueCount > 0
-                ? `${dueCount} word${dueCount === 1 ? ' is' : 's are'} due to water today. Let's tend them.`
-                : "You're all caught up - review anytime to keep your streak alive."
-            }
-          />
-        </div>
-
-        {words.length > 0 ? (
-          <FlashcardView vocabulary={words} />
-        ) : (
-          <EmptyState
-            icon={Layers}
-            iconColorClass="text-accent"
-            iconBgClass="bg-accent/15"
-            title="Nothing to water yet"
-            description="Learn a few words on the vocabulary page and they'll show up here, ready to practice."
-            action={{ label: 'Go to my garden', to: '/vocabulary' }}
-          />
-        )}
+      <div className="mb-8">
+        <PageHeader
+          icon={Zap}
+          title="Flashcard practice"
+          description={
+            dueCount > 0
+              ? `${dueCount} word${dueCount === 1 ? ' is' : 's are'} due to water today. Let's tend them.`
+              : "You're all caught up - review anytime to keep your streak alive."
+          }
+        />
       </div>
-    </div>
+
+      {words.length > 0 ? (
+        <FlashcardView vocabulary={words} />
+      ) : (
+        <EmptyState
+          icon={Layers}
+          iconColorClass="text-accent"
+          iconBgClass="bg-accent/15"
+          title="Nothing to water yet"
+          description="Learn a few words on the vocabulary page and they'll show up here, ready to practice."
+          action={{ label: 'Go to my garden', to: '/vocabulary' }}
+        />
+      )}
+    </PageContainer>
   );
 };
 

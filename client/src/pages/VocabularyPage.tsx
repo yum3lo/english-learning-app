@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import PageContainer from '@/components/PageContainer';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -150,8 +151,8 @@ const VocabularyPage = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto section-px py-8">
+    <>
+      <PageContainer>
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
           <PageHeader
             icon={Sprout}
@@ -328,7 +329,7 @@ const VocabularyPage = () => {
             action={{ label: 'Browse articles', to: '/reading' }}
           />
         )}
-      </div>
+      </PageContainer>
 
       <DictionaryPopup
         word={selectedWord}
@@ -341,7 +342,7 @@ const VocabularyPage = () => {
         sourceSentence={encounteredSentence}
         sourceMediaType={encounteredMediaType}
       />
-    </div>
+    </>
   );
 };
 

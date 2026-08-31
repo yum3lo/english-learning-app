@@ -14,6 +14,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { mediaAPI } from '@/services/api';
 import mediaDataService, { type UnifiedMediaItem } from '@/data/mediaData';
 import EmptyState from '@/components/EmptyState';
+import PageContainer from '@/components/PageContainer';
 import teapot from '@/assets/teapot.png';
 
 const isObjectId = (value: string) => /^[0-9a-fA-F]{24}$/.test(value);
@@ -190,8 +191,8 @@ const MediaPage = () => {
     : Boolean(media.content?.content);
 
   return (
-    <div className="min-h-screen">
-      <div className="container mx-auto px-4 py-8">
+    <>
+      <PageContainer>
         <Button
           variant="link"
           onClick={() => navigate(-1)}
@@ -351,7 +352,7 @@ const MediaPage = () => {
             </div>
           </div>
         )}
-      </div>
+      </PageContainer>
 
       <DictionaryPopup
         word={selectedWord}
@@ -364,7 +365,7 @@ const MediaPage = () => {
         sourceSentence={encounteredSentence}
         sourceMediaType={encounteredMediaType}
       />
-    </div>
+    </>
   );
 };
 
