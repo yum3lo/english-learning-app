@@ -1,4 +1,4 @@
-import { Sprout, Leaf, Flower2, type LucideIcon } from 'lucide-react';
+import { Sprout, Leaf, Flower, type LucideIcon } from 'lucide-react';
 import type { MasteryStage } from '@/data/vocabulary';
 
 export interface StageConfig {
@@ -28,7 +28,7 @@ export const STAGE_CONFIG: Record<MasteryStage, StageConfig> = {
     bgTintClass: 'bg-secondary/15',
   },
   bloomed: {
-    icon: Flower2,
+    icon: Flower,
     label: 'Bloomed',
     borderClass: 'border-t-bloom',
     iconColorClass: 'text-bloom',

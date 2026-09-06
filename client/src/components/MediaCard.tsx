@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
 import { BookOpen, Play, CheckCircle } from 'lucide-react';
 import { 
   Card, 
@@ -18,9 +19,9 @@ interface MediaCardProps {
 
 const MediaCard = ({ item, className = '' }: MediaCardProps) => {
   return (
-    <Link to={item.type === 'article' ? `/reading/${item._id}` : `/listening/${item._id}`} className="block">
-      <div className={`p-1 ${className}`}>
-        <Card className='overflow-hidden hover:shadow-md transition-shadow'>
+    <Link to={item.type === 'article' ? `/reading/${item._id}` : `/listening/${item._id}`} className="block h-full">
+      <div className={`p-1 h-full ${className}`}>
+        <Card className='overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col'>
           <div className="relative aspect-video bg-muted/50 rounded-t-lg overflow-hidden">
             {item.imageUrl ? (
               <img 
@@ -45,21 +46,18 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
                 <Play className="text-4xl" />
               )}
             </div>
-            <div className='absolute top-2 left-2 bg-foreground text-background px-2 py-1 rounded text-sm font-semibold'>
-              {item.cefrLevel}
-            </div>
             {item.isCompleted && (
               <div
-                className='absolute top-2 right-2 bg-secondary text-secondary-foreground rounded-full p-1'
+                className='absolute top-2 right-2 bg-primary text-primary-foreground rounded-full p-1'
                 title="Completed"
               >
                 <CheckCircle className="w-4 h-4" />
               </div>
             )}
             {item.duration && (
-              <div className='absolute bottom-2 right-2 bg-muted px-2 py-1 rounded text-sm'>
+              <Badge variant="bloom" className='absolute bottom-2 right-2'>
                 {formatDuration(item.duration)}
-              </div>
+              </Badge>
             )}
           </div>
           <CardHeader className="p-4 sm:p-5">
@@ -72,23 +70,23 @@ const MediaCard = ({ item, className = '' }: MediaCardProps) => {
               </div>
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-4 sm:p-5 pt-0 sm:pt-0">
+          <CardContent className="p-4 sm:p-5 pt-0 sm:pt-0 flex-1">
             <div className='text-sm line-clamp-2'>{item.description}</div>
           </CardContent>
           <CardFooter className="p-4 sm:p-5 pt-0 sm:pt-0">
             <div className='flex flex-wrap gap-1'>
               {item.categories.slice(0, 2).map((category) => (
-                <span 
+                <Badge 
                   key={category}
-                  className='px-2 py-1 bg-muted text-sm rounded'
+                  variant="simple"
                 >
                   {category}
-                </span>
+                </Badge>
               ))}
               {item.categories.length > 2 && (
-                <span className='px-2 py-1 text-sm rounded'>
+                <Badge variant="simple">
                   +{item.categories.length - 2}
-                </span>
+                </Badge>
               )}
             </div>
           </CardFooter>

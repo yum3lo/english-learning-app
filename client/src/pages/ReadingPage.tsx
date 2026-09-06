@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, Zap } from 'lucide-react';
-import MediaCarousel from '@/components/MediaCarousel';
+import { BookOpen, RefreshCcw } from 'lucide-react';
+import MediaGrid from '@/components/MediaGrid';
 import { type MediaItem } from '@/components/MediaCard';
 import { useToast } from '@/hooks/use-toast';
 import FilterSearch from '@/components/FilterSearch';
@@ -9,11 +9,11 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import MediaLayout from '@/layouts/MediaLayout';
+import { Button } from '@/components/ui/button';
 import { mediaAPI } from '@/services/api';
 
 const ReadingPage = () => {
   const { user } = useAuth();
-  const [newest, setNewest] = useState<MediaItem[]>([]);
   const [all, setAll] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,11 +48,6 @@ const ReadingPage = () => {
               });
             }
           }
-          const sortedByDate = [...articles].sort((a, b) => 
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-
-          setNewest(sortedByDate.slice(0, 6));
           setAll(articles);
         } else {
           throw new Error('Failed to fetch articles');
@@ -95,11 +90,7 @@ const ReadingPage = () => {
       if (response?.success && response.articles && response.articles.length > 0) {
         const newArticles = response.articles as any[];
         const combined = [...newArticles, ...all];
-        const sortedByDate = [...combined].sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
 
-        setNewest(sortedByDate.slice(0, 6));
         setAll(combined);
 
         toast({
@@ -133,40 +124,33 @@ const ReadingPage = () => {
         <PageHeader
           icon={BookOpen}
           title="Reading Practice"
-          description="Enhance your reading comprehension with curated articles for your level and preferences."
-        />
-      }
-      newestCarousel={
-        newest.length > 0 ? (
-          <MediaCarousel
-            title="Newest Articles"
-            items={newest}
-            variant="carousel"
-            icon={Zap}
-            showMobileIndicators={true}
-          />
-        ) : undefined
-      }
-      sidebar={
-        <FilterSearch
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          filteredCount={filtered.length}
-          mediaType="articles"
+          description="Curated articles matched to your level and interests."
         />
       }
       mainContent={
         <>
-          <div className="mb-8">
-            <MediaCarousel
-              title="All Articles"
-              items={filtered}
-              showLoadMore={true}
-              isLoadingMore={isFetchingMore}
-              onLoadMore={handleLoadMore}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
+            <FilterSearch
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              filteredCount={filtered.length}
+              mediaType="articles"
             />
+            <Button
+              onClick={handleLoadMore}
+              disabled={isFetchingMore}
+              aria-label={isFetchingMore ? 'Loading more articles' : 'Load more articles'}
+              variant="secondary"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">{isFetchingMore ? 'Loading...' : 'Load more'}</span>
+            </Button>
+          </div>
+
+          <div className="mb-8">
+            <MediaGrid items={filtered} />
           </div>
 
           {filtered.length === 0 && (

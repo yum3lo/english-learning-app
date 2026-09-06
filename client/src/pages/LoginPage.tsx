@@ -6,6 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import apple from '../assets/apple.png';
+import dragonfly from '../assets/dragonfly.png';
+import hedgehog from '../assets/hedgehog.png';
+import snail from '../assets/snail.png';
+import hummingbird from '../assets/hummingbird.png';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -76,17 +81,46 @@ const LoginPage = () => {
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
-      <Card className="max-w-md w-full">
+      <img
+        src={apple}
+        alt="Apple"
+        className="w-[120px] absolute left-[10%] top-[15%]"
+      />
+
+      <img
+        src={dragonfly}
+        alt="Dragonfly"
+        className="w-[220px] absolute right-[20%] top-[15%]"
+      />
+
+      <img
+        src={hedgehog}
+        alt="Hedgehog"
+        className="w-[300px] absolute right-[10%] bottom-[5%] rotate-[3deg]"
+      />
+
+      <img
+        src={hummingbird}
+        alt="Hummingbird"
+        className="w-[200px] absolute left-[15%] bottom-[20%]"
+      />
+      
+      <Card className="max-w-md w-full bg-background shadow-lg relative">
+        <img
+          src={snail}
+          alt="Snail"
+          className="w-[110px] absolute left-[-84px] top-[20px] rotate-[-95deg]"
+        />
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">
-            Sign in to your account
+          <CardTitle className="text-3xl">
+            Welcome back
           </CardTitle>
           <CardDescription>
-            <p className="text-sm">
+            <p className="text-base text-muted-foreground">
               Or{' '}
               <Link
                 to="/register"
-                className="font-medium text-primary hover:text-destructive transition-colors"
+                className="font-medium text-secondary hover:text-secondary/80 transition-colors"
               >
                 create a new account
               </Link>
@@ -149,7 +183,7 @@ const LoginPage = () => {
               </div>
 
               <div className="text-sm text-right">
-                <a href="#" className="font-medium text-primary hover:text-destructive transition-colors">
+                <a href="#" className="font-medium text-secondary hover:text-secondary/80 transition-colors">
                   Forgot your password?
                 </a>
               </div>

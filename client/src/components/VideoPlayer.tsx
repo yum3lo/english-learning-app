@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Sprout, CheckCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ArrowUpDown, Sprout, Trophy, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import ClickableText from './ClickableText';
 import InteractiveMarkdownRenderer from './InteractiveMarkdownRenderer';
@@ -42,13 +42,14 @@ const loadYouTubeIframeApi = (): Promise<void> => {
 };
 
 const CURRENT_TIME_POLL_MS = 500;
+const DESCRIPTION_PREVIEW_LENGTH = 200;
 
 interface VideoPlayerProps {
   videoUrl: string;
   title: string;
+  description?: string;
   source?: string;
   duration?: string | number;
-  cefrLevel?: string;
   categories?: string[];
   transcript?: string;
   transcriptSegments?: TranscriptSegment[];
@@ -63,9 +64,9 @@ interface VideoPlayerProps {
 const VideoPlayer = ({
   videoUrl,
   title,
+  description,
   source,
   duration,
-  cefrLevel,
   categories,
   transcript,
   transcriptSegments,
@@ -78,6 +79,7 @@ const VideoPlayer = ({
 }: VideoPlayerProps) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [autoScroll, setAutoScroll] = useState(true);
+  const [showFullDescription, setShowFullDescription] = useState(false);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<any>(null);
   const activeSegmentRef = useRef<HTMLDivElement | null>(null);
@@ -163,12 +165,8 @@ const VideoPlayer = ({
 
         <div className="mt-3">
           <div className="flex flex-wrap items-center gap-2 mb-2">
-            {cefrLevel && <Badge variant="secondary" className="rounded-full">{cefrLevel}</Badge>}
             {categories?.map(category => (
-              <Badge
-                key={category}
-                className="rounded-full border-transparent bg-accent/15 text-accent hover:bg-accent/15"
-              >
+              <Badge key={category} variant="simple">
                 {category}
               </Badge>
             ))}
@@ -177,6 +175,21 @@ const VideoPlayer = ({
           {(source || duration) && (
             <div className="text-sm text-muted-foreground">
               {[source, duration ? formatDuration(duration) : undefined].filter(Boolean).join(' · ')}
+            </div>
+          )}
+
+          {description && (
+            <div className="mt-3">
+              <p className={showFullDescription ? '' : 'line-clamp-3'}>{description}</p>
+              {description.length > DESCRIPTION_PREVIEW_LENGTH && (
+                <Button
+                  variant="link"
+                  className="h-auto px-0"
+                  onClick={() => setShowFullDescription(prev => !prev)}
+                >
+                  {showFullDescription ? 'Show less' : 'Show more'}
+                </Button>
+              )}
             </div>
           )}
 
@@ -203,15 +216,20 @@ const VideoPlayer = ({
         {hasSegments ? (
           <Card className="p-0 overflow-hidden">
             <div className="flex items-center justify-between px-3.5 py-3 border-b">
-              <span className="text-sm font-medium">Transcript</span>
+              <span className="text-base font-medium">Transcript</span>
               <button
                 type="button"
                 onClick={() => setAutoScroll(prev => !prev)}
-                className={`flex items-center gap-1 text-xs ${autoScroll ? 'text-secondary' : 'text-muted-foreground'}`}
+                className={`flex items-center gap-1 text-sm ${autoScroll ? 'text-secondary' : 'text-muted-foreground'}`}
               >
-                <ArrowUpDown className="w-3.5 h-3.5" />
+                <ArrowUpDown className="w-4 h-4" />
                 Auto-scroll
               </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground bg-muted/50 px-3.5 py-2 border-b">
+              <Sprout className="w-4 h-4 text-secondary" />
+              Tap any word to plant it
             </div>
 
             <div className="max-h-[420px] overflow-y-auto p-1.5">
@@ -235,11 +253,6 @@ const VideoPlayer = ({
                   </div>
                 );
               })}
-
-              <div className="mt-1 flex items-center justify-center gap-1.5 text-xs text-muted-foreground bg-background rounded-lg px-3 py-2.5">
-                <Sprout className="w-3.5 h-3.5 text-secondary" />
-                Tap any word to plant it
-              </div>
             </div>
           </Card>
         ) : transcript ? (
@@ -258,18 +271,26 @@ const VideoPlayer = ({
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-3">
               This session
             </div>
+
             <div className="flex items-center justify-between py-2 border-t">
               <span className="text-sm text-muted-foreground">Words planted</span>
-              <span className="text-sm font-medium text-bloom">{sessionWordsPlanted} 🌱</span>
+              <span className="text-sm font-medium text-secondary">
+                {sessionWordsPlanted}
+                <Sprout className="w-4 h-4 inline-block ml-1 mb-0.5 text-secondary" />
+              </span>
             </div>
-            <div className="flex items-center justify-between py-2 border-t">
+
+            <div className="flex items-center justify-between pt-2 border-t">
               <span className="text-sm text-muted-foreground">Points earned</span>
-              <span className="text-sm font-medium text-accent">+{sessionPoints}</span>
+              <span className="text-sm font-medium text-accent">
+                +{sessionPoints}
+                <Trophy className="w-4 h-4 inline-block ml-1 mb-0.5 text-accent" />  
+              </span>
             </div>
           </Card>
         )}
 
-        <img src={ladybug} alt="Ladybug" className="w-16 h-16 mx-auto mt-8 select-none pointer-events-none hidden xl:block" />
+        <img src={ladybug} alt="Ladybug" className="w-16 h-16 mx-auto mt-[25%] select-none pointer-events-none hidden xl:block" />
       </div>
     </div>
   );

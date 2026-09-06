@@ -57,7 +57,7 @@ const VocabularyCard = ({ vocabulary, onWordClick }: VocabularyCardProps) => {
               />
             </div>
             <StageIcon
-              className={cn('w-4 h-4 shrink-0 mt-1', stage.iconColorClass)}
+              className={cn('w-6 h-6 shrink-0 mt-1', stage.iconColorClass)}
               aria-label={stage.label}
             >
               <title>{stage.label}</title>

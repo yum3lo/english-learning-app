@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { ArrowLeft, Clock, Calendar, Newspaper, Sprout, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Clock, Calendar, Newspaper, Sprout, Trophy, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import VideoPlayer from '@/components/VideoPlayer';
@@ -40,6 +40,7 @@ const MediaPage = () => {
   const {
     selectedWord,
     dictionaryData,
+    isDictionaryUnavailable,
     isDictionaryOpen,
     isLoadingDictionary,
     isAddingToLearned,
@@ -207,9 +208,9 @@ const MediaPage = () => {
             <VideoPlayer
               videoUrl={media.content?.videoUrl || media.url}
               title={media.title}
+              description={media.description}
               source={media.source}
               duration={media.duration}
-              cefrLevel={media.cefrLevel}
               categories={media.categories}
               transcript={media.content?.transcript}
               transcriptSegments={media.content?.transcriptSegments}
@@ -230,11 +231,10 @@ const MediaPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6 items-start">
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-3">
-                <Badge variant="secondary" className="rounded-full">{media.cefrLevel}</Badge>
                 {media.categories.map(category => (
                   <Badge
                     key={category}
-                    className="rounded-full border-transparent bg-accent/15 text-accent hover:bg-accent/15"
+                    variant="simple"
                   >
                     {category}
                   </Badge>
@@ -275,6 +275,13 @@ const MediaPage = () => {
                 </div>
               )}
 
+              {hasContent && (
+                <div className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-lg px-3 py-2">
+                  <Sprout className="w-4 h-4 text-secondary" />
+                  Tap any word to see its meaning and plant it in your garden
+                </div>
+              )}
+
               {hasContent ? (
                 <Card>
                   <CardContent className="pt-6">
@@ -289,13 +296,6 @@ const MediaPage = () => {
                   title="Content Not Available"
                   description="We're sorry, but the content you are looking for is not available at this time."
                 />
-              )}
-
-              {hasContent && (
-                <div className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-lg px-3 py-2">
-                  <Sprout className="w-4 h-4 text-secondary" />
-                  Tap any word to see its meaning and plant it in your garden
-                </div>
               )}
             </div>
 
@@ -320,11 +320,18 @@ const MediaPage = () => {
 
                 <div className="flex items-center justify-between py-2 border-t">
                   <span className="text-sm text-muted-foreground">Words planted</span>
-                  <span className="text-sm font-medium text-bloom">{sessionWordsPlanted} 🌱</span>
+                  <span className="text-sm font-medium text-secondary">
+                    {sessionWordsPlanted}
+                    <Sprout className="w-4 h-4 inline-block ml-1 mb-0.5 text-secondary" />
+                  </span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-t">
+                
+                <div className="flex items-center justify-between pt-2 border-t">
                   <span className="text-sm text-muted-foreground">Points earned</span>
-                  <span className="text-sm font-medium text-accent">+{sessionPoints}</span>
+                  <span className="text-sm font-medium text-accent">
+                    +{sessionPoints}
+                    <Trophy className="w-4 h-4 inline-block ml-1 mb-0.5 text-accent" />  
+                  </span>
                 </div>
 
                 {hasContent && (
@@ -362,6 +369,7 @@ const MediaPage = () => {
         onAddToLearned={handleAddToLearned}
         isAddingToLearned={isAddingToLearned}
         isLoading={isLoadingDictionary}
+        isUnavailable={isDictionaryUnavailable}
         sourceSentence={encounteredSentence}
         sourceMediaType={encounteredMediaType}
       />

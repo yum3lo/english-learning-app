@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Headphones, Zap } from 'lucide-react';
-import MediaCarousel from '@/components/MediaCarousel';
+import { Headphones, RefreshCcw } from 'lucide-react';
+import MediaGrid from '@/components/MediaGrid';
 import { type MediaItem } from '@/components/MediaCard';
 import { useToast } from '@/hooks/use-toast';
 import FilterSearch from '@/components/FilterSearch';
@@ -9,12 +9,12 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import MediaLayout from '@/layouts/MediaLayout';
+import { Button } from '@/components/ui/button';
 import { mediaAPI } from '@/services/api';
 import { categorizeDuration } from '@/constants/categories';
 
 const ListeningPage = () => {
   const { user } = useAuth();
-  const [newest, setNewest] = useState<MediaItem[]>([]);
   const [all, setAll] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,11 +50,6 @@ const ListeningPage = () => {
               });
             }
           }
-          const sortedByDate = [...videos].sort((a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-
-          setNewest(sortedByDate.slice(0, 6));
           setAll(videos);
         } else {
           throw new Error('Failed to fetch videos');
@@ -99,11 +94,7 @@ const ListeningPage = () => {
       if (response?.success && response.videos && response.videos.length > 0) {
         const newVideos = response.videos as any[];
         const combined = [...newVideos, ...all];
-        const sortedByDate = [...combined].sort((a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
 
-        setNewest(sortedByDate.slice(0, 6));
         setAll(combined);
 
         toast({
@@ -137,42 +128,35 @@ const ListeningPage = () => {
         <PageHeader
           icon={Headphones}
           title="Listening Practice"
-          description="Improve your listening comprehension with curated videos for your level and preferences."
-        />
-      }
-      newestCarousel={
-        newest.length > 0 ? (
-          <MediaCarousel
-            title="Newest Videos"
-            items={newest}
-            variant="carousel"
-            icon={Zap}
-            showMobileIndicators={true}
-          />
-        ) : undefined
-      }
-      sidebar={
-        <FilterSearch
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedDuration={selectedDuration}
-          setSelectedDuration={setSelectedDuration}
-          filteredCount={filtered.length}
-          mediaType="videos"
+          description="Curated videos with transcripts, matched to your level and interests."
         />
       }
       mainContent={
         <>
-          <div className="mb-8">
-            <MediaCarousel
-              title="All Videos"
-              items={filtered}
-              showLoadMore={true}
-              isLoadingMore={isFetchingMore}
-              onLoadMore={handleLoadMore}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
+            <FilterSearch
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedDuration={selectedDuration}
+              setSelectedDuration={setSelectedDuration}
+              filteredCount={filtered.length}
+              mediaType="videos"
             />
+            <Button
+              onClick={handleLoadMore}
+              disabled={isFetchingMore}
+              aria-label={isFetchingMore ? 'Loading more videos' : 'Load more videos'}
+              variant="secondary"
+            >
+              <RefreshCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">{isFetchingMore ? 'Loading...' : 'Load more'}</span>
+            </Button>
+          </div>
+
+          <div className="mb-8">
+            <MediaGrid items={filtered} />
           </div>
 
           {filtered.length === 0 && (

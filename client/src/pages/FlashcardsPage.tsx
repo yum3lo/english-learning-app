@@ -56,12 +56,12 @@ const FlashcardsPage = () => {
   return (
     <PageContainer>
       <Button
-        variant="ghost"
+        variant="link"
         onClick={() => navigate(-1)}
-        className="mb-6"
+        className="mb-4 h-auto px-0 text-secondary hover:text-secondary/80"
       >
         <ArrowLeft className="w-4 h-4" />
-        Back
+        Back to garden
       </Button>
 
       <div className="mb-8">
