@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Sprout, ArrowUpDown, Search, type LucideIcon } from 'lucide-react';
+import { Sprout, Search, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VocabularyCard from '@/components/VocabularyCard';
 import DictionaryPopup from '@/components/DictionaryPopup';
@@ -65,6 +65,7 @@ const VocabularyPage = () => {
   const {
     selectedWord,
     dictionaryData,
+    isDictionaryUnavailable,
     isDictionaryOpen,
     isLoadingDictionary,
     isAddingToLearned,
@@ -200,7 +201,7 @@ const VocabularyPage = () => {
                         isActive ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
                       )}
                     >
-                      {Icon && <Icon className={cn('h-3.5 w-3.5', !isActive && filter.colorClass)} />}
+                      {Icon && <Icon className={cn('h-4 w-4', !isActive && filter.colorClass)} />}
                       {filter.label} {count}
                     </button>
                   );
@@ -217,18 +218,15 @@ const VocabularyPage = () => {
                     className="pl-8 w-full sm:w-[160px]"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="h-4 w-4 shrink-0" />
-                  <Select value={sortBy} onValueChange={handleSortChange}>
-                    <SelectTrigger className="w-[140px]">
-                      <SelectValue placeholder="Sort by..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="latest">Most recent</SelectItem>
-                      <SelectItem value="alphabetical">Alphabetical</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={sortBy} onValueChange={handleSortChange}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Sort by..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="latest">Most recent</SelectItem>
+                    <SelectItem value="alphabetical">Alphabetical</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </>
@@ -339,6 +337,7 @@ const VocabularyPage = () => {
         onAddToLearned={handleAddToLearned}
         isAddingToLearned={isAddingToLearned}
         isLoading={isLoadingDictionary}
+        isUnavailable={isDictionaryUnavailable}
         sourceSentence={encounteredSentence}
         sourceMediaType={encounteredMediaType}
       />

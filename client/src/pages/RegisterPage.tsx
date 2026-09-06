@@ -3,7 +3,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import flower from '../assets/flower.png';
 import ladybug from '../assets/ladybug.png';
-import unicorn from '../assets/unicorn.png';
+import rabbit from '../assets/rabbit.png';
+import butterfly from '../assets/butterfly.png';
+import squirrel from '../assets/squirrel.png';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -116,34 +118,45 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
       <img
-        src={flower}
-        alt="Flower"
-        className="w-[180px] absolute left-20 bottom-50"
+        src={butterfly}
+        alt="Butterfly"
+        className="w-[120px] absolute left-[10%] top-[20%] rotate-[-10deg]"
+      />
+
+      <img
+        src={rabbit}
+        alt="Rabbit"
+        className="w-[260px] absolute left-[14%] bottom-[15%] rotate-[-2deg]"
       />
       
       <img
-        src={ladybug}
-        alt="Ladybug"
-        className="w-14 absolute right-[360px] top-[100px]"
+        src={squirrel}
+        alt="Squirrel"
+        className="w-[160px] absolute right-[10%] top-[27%] rotate-[-2deg]"
       />
 
       <img
-        src={unicorn}
-        alt="Unicorn"
-        className="w-40 absolute right-20 bottom-10"
+        src={flower}
+        alt="Flower"
+        className="w-[160px] absolute right-[20%] bottom-[13%]"
       />
 
-      <Card className="max-w-lg w-full">
+      <Card className="max-w-lg w-full bg-background shadow-lg relative">
+        <img
+          src={ladybug}
+          alt="Ladybug"
+          className="w-14 absolute right-[-4px] top-0"
+        />
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">
-            Create your account
+          <CardTitle className="text-3xl">
+            Plant your garden
           </CardTitle>
           <CardDescription>
-            <p className="text-sm">
+            <p className="text-base text-muted-foreground">
               Or{' '}
               <Link
                 to="/login"
-                className="font-medium text-primary hover:text-destructive transition-colors"
+                className="font-medium text-secondary hover:text-secondary/80 transition-colors"
               >
                 sign in to your existing account
               </Link>
@@ -228,7 +241,7 @@ const RegisterPage = () => {
               </div>
               
               <div>
-                <Label className="text-sm font-medium mb-3 block">
+                <Label className="mb-2 block">
                   English Level (CEFR)
                 </Label>
                 <div className="flex gap-2">
@@ -236,7 +249,7 @@ const RegisterPage = () => {
                     <Badge
                       key={level}
                       variant={formData.cefrLevel === level ? "default" : "outline"}
-                      className="cursor-pointer transition-all hover:scale-105 px-4 py-2"
+                      className="cursor-pointer px-4 py-2"
                       onClick={() => {
                         setFormData(prev => ({
                           ...prev,
@@ -248,13 +261,13 @@ const RegisterPage = () => {
                     </Badge>
                   ))}
                 </div>
-                <p className="text-sm mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   Select your current English proficiency level
                 </p>
               </div>
               
               <div>
-                <Label className="text-sm font-medium mb-3 block">
+                <Label className="mb-2 block">
                   Fields of Interest
                 </Label>
                 <div className="flex flex-wrap gap-2">
@@ -262,14 +275,14 @@ const RegisterPage = () => {
                     <Badge
                       key={interest}
                       variant={formData.fieldsOfInterest.includes(interest) ? "default" : "outline"}
-                      className="cursor-pointer transition-all hover:scale-105"
+                      className="cursor-pointer"
                       onClick={() => handleInterestChange(interest)}
                     >
                       {interest}
                     </Badge>
                   ))}
                 </div>
-                <p className="text-sm mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   Click on the categories you're interested in
                 </p>
                 {errors.fieldsOfInterest && (
