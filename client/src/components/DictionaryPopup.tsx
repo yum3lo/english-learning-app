@@ -19,6 +19,7 @@ interface DictionaryPopupProps {
   onAddToLearned: () => void;
   isAddingToLearned?: boolean;
   isLoading?: boolean;
+  isUnavailable?: boolean;
   sourceSentence?: string | null;
   sourceMediaType?: SourceMediaType | null;
 }
@@ -31,6 +32,7 @@ const DictionaryPopup = ({
   onAddToLearned,
   isAddingToLearned = false,
   isLoading = false,
+  isUnavailable = false,
   sourceSentence,
   sourceMediaType
 }: DictionaryPopupProps) => {
@@ -100,6 +102,16 @@ const DictionaryPopup = ({
               </p>
               <p className="text-sm mt-2">
                 Fetching definition from dictionary
+              </p>
+            </div>
+          ) : isUnavailable ? (
+            <div className="text-center py-8">
+              <BookOpen className="w-12 h-12 mx-auto mb-4" />
+              <p className="text-lg font-medium">
+                Dictionary service is temporarily unavailable
+              </p>
+              <p className="text-sm mt-2">
+                Please try again in a moment.
               </p>
             </div>
           ) : !dictionaryData ? (

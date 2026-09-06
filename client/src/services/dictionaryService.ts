@@ -1,4 +1,4 @@
-import type { DictionaryEntry } from '@/types/dictionary';
+import type { DictionaryEntry, DictionaryLookupResult } from '@/types/dictionary';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const DICTIONARY_API_BASE = `${API_BASE}/dictionary`;
@@ -21,15 +21,16 @@ export class DictionaryService {
     }
   }
 
-  static async getWordWithFallback(word: string, sentence?: string): Promise<DictionaryEntry | null> {
+  static async getWordWithFallback(word: string, sentence?: string): Promise<DictionaryLookupResult> {
     try {
       const result = await this.getWordDefinition(word, sentence);
-      if ((result as any).entry) return (result as any).entry as DictionaryEntry;
-      if (Array.isArray(result) && result.length > 0) return result[0] as DictionaryEntry;
-      return null;
+      if ((result as any).unavailable) return { entry: null, unavailable: true };
+      if ((result as any).entry) return { entry: (result as any).entry as DictionaryEntry };
+      if (Array.isArray(result) && result.length > 0) return { entry: result[0] as DictionaryEntry };
+      return { entry: null };
     } catch (error) {
       console.error('Failed to get word definition:', error);
-      return null;
+      return { entry: null };
     }
   }
 }

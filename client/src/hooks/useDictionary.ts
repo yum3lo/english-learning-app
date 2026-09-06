@@ -11,6 +11,7 @@ export const useDictionary = () => {
 
   const [selectedWord, setSelectedWord] = useState<string>('');
   const [dictionaryData, setDictionaryData] = useState<DictionaryEntry | null>(null);
+  const [isDictionaryUnavailable, setIsDictionaryUnavailable] = useState(false);
   const [isDictionaryOpen, setIsDictionaryOpen] = useState(false);
   const [isLoadingDictionary, setIsLoadingDictionary] = useState(false);
   const [isAddingToLearned, setIsAddingToLearned] = useState(false);
@@ -24,10 +25,12 @@ export const useDictionary = () => {
     setIsDictionaryOpen(true);
     setIsLoadingDictionary(true);
     setDictionaryData(null);
+    setIsDictionaryUnavailable(false);
 
     try {
-      const wordData = await DictionaryService.getWordWithFallback(word, sentence);
-      setDictionaryData(wordData);
+      const { entry, unavailable } = await DictionaryService.getWordWithFallback(word, sentence);
+      setDictionaryData(entry);
+      setIsDictionaryUnavailable(Boolean(unavailable));
     } catch (error) {
       console.error('Error fetching dictionary data:', error);
       toast({
@@ -73,6 +76,7 @@ export const useDictionary = () => {
   const handleCloseDictionary = () => {
     setIsDictionaryOpen(false);
     setDictionaryData(null);
+    setIsDictionaryUnavailable(false);
     setSelectedWord('');
     setEncounteredSentence(null);
     setEncounteredMediaType(null);
@@ -81,6 +85,7 @@ export const useDictionary = () => {
   return {
     selectedWord,
     dictionaryData,
+    isDictionaryUnavailable,
     isDictionaryOpen,
     isLoadingDictionary,
     isAddingToLearned,

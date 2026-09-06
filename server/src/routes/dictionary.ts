@@ -5,6 +5,14 @@ import { disambiguateSense } from '../services/senseDisambiguationService';
 import { getCachedDisambiguation, setCachedDisambiguation } from '../utils/disambiguationCache';
 import { CONTRACTIONS } from '../constants/contractions';
 
+// wink-lemmatizer ships no type declarations - typed require avoids ambient-module resolution
+// differences between tsc and ts-node
+const lemmatizer: {
+  verb: (word: string) => string;
+  noun: (word: string) => string;
+  adjective: (word: string) => string;
+} = require('wink-lemmatizer');
+
 const router = express.Router();
 
 interface DictionaryContext {
@@ -33,6 +41,48 @@ function flattenSenses(meanings: any[]): ISense[] {
   return senses;
 }
 
+interface DictionaryEntry {
+  phonetic?: string;
+  audioUrl?: string;
+  senses: ISense[];
+}
+
+type LookupResult =
+  | { found: true; entry: DictionaryEntry }
+  | { found: false; unavailable: boolean };
+
+async function fetchDictionaryEntry(word: string): Promise<LookupResult> {
+  try {
+    const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
+    const response = await axios.get(apiUrl, { timeout: 5000 });
+    const data = response.data;
+    if (!Array.isArray(data) || data.length === 0) return { found: false, unavailable: false };
+
+    const fetched = data[0];
+    return {
+      found: true,
+      entry: {
+        phonetic: fetched.phonetic || fetched.phonetics?.[0]?.text || undefined,
+        audioUrl: fetched.phonetics?.find((p: any) => p.audio)?.audio || undefined,
+        senses: flattenSenses(fetched.meanings),
+      },
+    };
+  } catch (err: any) {
+    const isRealNotFound = err?.response?.status === 404;
+    if (!isRealNotFound) {
+      console.warn(`External dictionary lookup failed for "${word}":`, err?.message || err);
+    }
+    return { found: false, unavailable: !isRealNotFound };
+  }
+}
+
+function lemmaCandidates(word: string): string[] {
+  return Array.from(new Set(
+    [lemmatizer.verb(word), lemmatizer.noun(word), lemmatizer.adjective(word)]
+      .filter(candidate => candidate && candidate !== word)
+  ));
+}
+
 // GET /api/dictionary/:word?sentence=...
 router.get('/:word', async (req, res) => {
   try {
@@ -52,6 +102,7 @@ router.get('/:word', async (req, res) => {
       let phonetic: string | undefined;
       let audioUrl: string | undefined;
       let senses: ISense[] = [];
+      let resolvedLemma: string | undefined;
 
       if (CONTRACTIONS[key]) {
         // dictionaryapi.dev either lacks contractions entirely ("won't") or indexes an
@@ -59,39 +110,54 @@ router.get('/:word', async (req, res) => {
         // there's exactly one standard meaning, no external lookup or disambiguation needed
         senses = [{ partOfSpeech: 'contraction', definition: CONTRACTIONS[key], synonyms: [], antonyms: [] }];
       } else {
-        try {
-          const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(key)}`;
-          const response = await axios.get(apiUrl, { timeout: 5000 });
-          const data = response.data;
-          if (Array.isArray(data) && data.length > 0) {
-            const fetched = data[0];
-            phonetic = fetched.phonetic || fetched.phonetics?.[0]?.text || undefined;
-            audioUrl = fetched.phonetics?.find((p: any) => p.audio)?.audio || undefined;
-            senses = flattenSenses(fetched.meanings);
+        let result = await fetchDictionaryEntry(key);
+
+        if (!result.found && !result.unavailable) {
+          for (const candidate of lemmaCandidates(key)) {
+            const candidateResult = await fetchDictionaryEntry(candidate);
+            if (candidateResult.found) {
+              result = candidateResult;
+              resolvedLemma = candidate;
+              break;
+            }
+            if (candidateResult.unavailable) {
+              result = candidateResult;
+              break;
+            }
           }
-        } catch (err: any) {
-          // dictionaryapi.dev 404s (or errors) for unknown words - fall through with empty senses
-          if (err?.response?.status !== 404) {
-            console.warn('External dictionary lookup failed:', err?.message || err);
-          }
+        }
+
+        if (result.found) {
+          phonetic = result.entry.phonetic;
+          audioUrl = result.entry.audioUrl;
+          senses = result.entry.senses;
+        } else if (result.unavailable) {
+          // don't cache anything - we don't actually know whether this word has a
+          // definition, only that we couldn't ask the external dictionary right now
+          res.status(200).json({ success: true, unavailable: true, entry: null });
+          return;
         }
       }
 
       vocabWord = await VocabularyWord.findOneAndUpdate(
         { word: key },
-        { $setOnInsert: { word: key, cefrLevel: 'B2' }, $set: { phonetic, audioUrl, senses } },
+        {
+          $setOnInsert: { word: key, cefrLevel: 'B2' },
+          $set: { phonetic, audioUrl, senses, ...(resolvedLemma ? { lemma: resolvedLemma } : {}) },
+        },
         { upsert: true, new: true }
       );
     }
 
     const senses = vocabWord!.senses;
+    const lemma = vocabWord!.lemma || key;
     let context: DictionaryContext | null = null;
 
     if (senses.length === 0) {
       context = null;
     } else if (senses.length === 1) {
       context = {
-        lemma: key,
+        lemma,
         partOfSpeech: senses[0].partOfSpeech,
         definition: senses[0].definition,
         bestSenseIndex: 0,
@@ -100,7 +166,7 @@ router.get('/:word', async (req, res) => {
     } else if (!sentence) {
       // no sentence context to disambiguate against - best guess, not shown as authoritative
       context = {
-        lemma: key,
+        lemma,
         partOfSpeech: senses[0].partOfSpeech,
         definition: senses[0].definition,
         bestSenseIndex: 0,
@@ -134,7 +200,7 @@ router.get('/:word', async (req, res) => {
         } catch (err: any) {
           console.warn('Sense disambiguation failed, falling back to first sense:', err?.message || err);
           context = {
-            lemma: key,
+            lemma,
             partOfSpeech: senses[0].partOfSpeech,
             definition: senses[0].definition,
             bestSenseIndex: 0,

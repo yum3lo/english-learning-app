@@ -27,3 +27,8 @@ export interface DictionaryEntry {
   senses: DictionarySense[];
   context: DictionaryContext | null;
 }
+
+export interface DictionaryLookupResult {
+  entry: DictionaryEntry | null;
+  unavailable?: boolean;
+}

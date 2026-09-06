@@ -12,6 +12,7 @@ export interface ISense {
 export interface IVocabularyWord extends Document {
   _id: string;
   word: string;
+  lemma?: string;
   phonetic?: string;
   audioUrl?: string;
   cefrLevel: CEFRLevel;
@@ -59,6 +60,11 @@ const vocabularyWordSchema = new Schema<IVocabularyWord>({
     lowercase: true,
     unique: true,
     index: true
+  },
+  lemma: {
+    type: String,
+    trim: true,
+    lowercase: true
   },
   phonetic: {
     type: String,
