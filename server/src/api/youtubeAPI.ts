@@ -130,6 +130,30 @@ class YouTubeAPI {
     }
   }
 
+  private getRelatedCategories(category: string): string[] {
+    const relatedMap: Record<string, string[]> = {
+      Technology: ['Science'],
+      Science: ['Technology'],
+      Environment: ['Geography', 'Science'],
+      Geography: ['Travel'],
+      Travel: ['Geography', 'Culture'],
+      Culture: ['History', 'Art'],
+      Cinema: ['Culture', 'Art'],
+      Literature: ['Culture'],
+      Music: ['Culture', 'Art'],
+      Art: ['Culture'],
+      History: ['Culture', 'Politics'],
+      Politics: ['Economy'],
+      Economy: ['Politics'],
+      Health: ['Science'],
+      Food: ['Culture', 'Travel'],
+      Fauna: ['Environment'],
+      Flora: ['Environment'],
+    };
+
+    return relatedMap[category] || [];
+  }
+
   private getCategorySearchTerms(category: string): string {
     const searchTerms: Record<string, string> = {
       'General': 'interesting facts explained',
@@ -212,7 +236,7 @@ class YouTubeAPI {
           || item.snippet.thumbnails?.default?.url,
         source: item.snippet.channelTitle,
         description: decodeHtmlEntities(descriptionByVideoId.get(item.id.videoId) ?? item.snippet.description),
-        categories: category ? [category] : ['General'],
+        categories: category ? [category, ...this.getRelatedCategories(category)] : ['General'],
         publishedDate: new Date(item.snippet.publishedAt),
         duration: durationByVideoId.get(item.id.videoId)
       }));
