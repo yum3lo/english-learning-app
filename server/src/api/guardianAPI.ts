@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { convertHtmlToMarkdown } from '../utils/htmlToMarkdown';
 
 interface GuardianArticle {
   id: string;
@@ -28,6 +29,7 @@ interface GuardianResponse {
 }
 
 export interface ProcessedArticle {
+  id: string;
   title: string;
   url: string;
   thumbnailUrl?: string;
@@ -206,41 +208,15 @@ class GuardianAPI {
     }
   }
 
-  private convertHtmlToMarkdown(html: string): string {
-    if (!html) return '';
-
-    let text = html;
-    text = text.replace(/\r\n|\r/g, '\n');
-    text = text.replace(/<p[^>]*>/gi, '\n\n');
-    text = text.replace(/<\/p>/gi, '\n\n');
-    text = text.replace(/<br\s*\/?>(\s*)/gi, '\n');
-    text = text.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '\n# $1\n');
-    text = text.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '\n## $1\n');
-    text = text.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '\n### $1\n');
-    text = text.replace(/<(?:strong|b)[^>]*>(.*?)<\/(?:strong|b)>/gi, '**$1**');
-    text = text.replace(/<(?:em|i)[^>]*>(.*?)<\/(?:em|i)>/gi, '*$1*');
-    text = text.replace(/<[^>]+>/g, '');
-    text = text.replace(/&nbsp;/g, ' ');
-    text = text.replace(/&amp;/g, '&');
-    text = text.replace(/&lt;/g, '<');
-    text = text.replace(/&gt;/g, '>');
-    text = text.replace(/&quot;/g, '"');
-    text = text.replace(/&#39;/g, "'");
-    text = text.replace(/\n{3,}/g, '\n\n');
-    text = text.replace(/\*\*\s*\*\*/g, '');
-    text = text.replace(/\*\s*\*/g, '');
-
-    return text.trim();
-  }
-
   private processArticles(articles: GuardianArticle[]): ProcessedArticle[] {
     return articles
       .filter(article => (article.fields?.body || article.fields?.bodyText))
       .map(article => {
         const rawHtml = article.fields?.body || article.fields?.bodyText || '';
-        const content = article.fields?.body ? this.convertHtmlToMarkdown(rawHtml) : rawHtml;
+        const content = article.fields?.body ? convertHtmlToMarkdown(rawHtml) : rawHtml;
 
         return {
+          id: article.id,
           title: article.fields?.headline || article.webTitle,
           url: article.webUrl,
           thumbnailUrl: article.fields?.thumbnail,
