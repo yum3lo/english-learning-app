@@ -2,11 +2,11 @@ import express, { Response } from 'express';
 import { body, query, validationResult } from 'express-validator';
 import Media from '../models/Media';
 import { authenticate, AuthenticatedRequest } from '../middleware/auth';
-import guardianService from '../api/guardianAPI';
 import youtubeService from '../api/youtubeAPI';
 import { CATEGORIES, CEFRLevel } from '../constants/categories';
 import { classifyTextWithOpenAI } from '../services/cefrClassificationService';
 import { stripHtml, decodeHtmlEntities } from '../utils/text';
+import { runIngestionPipeline } from '../pipeline';
 
 const router = express.Router();
 
@@ -76,7 +76,8 @@ router.get('/recommendations',
       const completedIds = new Set(user.completedMedia.map(m => m.mediaId));
 
       const query: any = {
-        cefrLevel: user.cefrLevel
+        cefrLevel: user.cefrLevel,
+        isActive: { $ne: false }
       };
 
       if (type) {
@@ -110,90 +111,25 @@ router.get('/recommendations',
   }
 );
 
-// @route   GET /api/media/guardian/fetch
-// @desc    Fetch fresh articles from Guardian API
+// @route   POST /api/media/ingest/trigger
+// @desc    Manually run the article ingestion pipeline (Guardian + Wikipedia) instead of
+//          waiting for the next scheduled run. Admin/ops surface, no UI caller by design -
+//          the app always reads articles from the DB, never live from these sources.
 // @access  Private
-router.get('/guardian/fetch',
+router.post('/ingest/trigger',
   authenticate,
-  [
-    query('category').optional().isIn(CATEGORIES).withMessage('Invalid category'),
-    query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50')
-  ],
-  async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  async (_req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        res.status(400).json({
-          success: false,
-          message: 'Validation failed',
-          errors: errors.array()
-        });
-        return;
-      }
-
-      const category = req.query.category as string | undefined;
-      const limit = parseInt(req.query.limit as string) || 10;
-
-      const articles = await guardianService.fetchArticles({
-        category,
-        pageSize: limit,
-        orderBy: 'newest'
-      });
-
-      const fetchedUrls = articles.map(a => a.url).filter(Boolean);
-      const existing = await Media.find({ url: { $in: fetchedUrls } }).select('url');
-      const existingUrls = new Set(existing.map(e => e.url));
-
-      const newArticles = articles.filter(a => a.url && !existingUrls.has(a.url));
-
-      const minContentLength = parseInt('1200', 10);
-      const savedArticles: any[] = [];
-      for (const article of newArticles) {
-        try {
-          const rawBody = article.content || '';
-          const plainBody = stripHtml(rawBody);
-          if (plainBody.length < minContentLength) {
-            continue;
-          }
-
-          // classifying before saving so the client never sees a stale UNCLASSIFIED card
-          let cefrLevel: CEFRLevel = 'UNCLASSIFIED';
-          try {
-            const result = await classifyTextWithOpenAI(plainBody);
-            cefrLevel = result.level;
-          } catch (err) {
-            console.error('Error classifying article:', err);
-          }
-
-          const doc = await Media.create({
-            title: article.title,
-            type: 'article',
-            url: article.url,
-            thumbnailUrl: article.thumbnailUrl,
-            source: article.source || 'The Guardian',
-            description: article.description,
-            content: { content: article.content },
-            cefrLevel,
-            categories: article.categories || []
-          });
-
-          savedArticles.push(mapMediaForClient(doc.toObject()));
-        } catch (err) {
-          console.error('Error saving Guardian article to DB:', err);
-        }
-      }
-
+      await runIngestionPipeline();
       res.status(200).json({
         success: true,
-        count: savedArticles.length,
-        articles: savedArticles,
-        message: 'New articles fetched from Guardian API and saved to database'
+        message: 'Ingestion pipeline run completed - check server logs for a per-source summary'
       });
     } catch (error) {
-      console.error('Guardian fetch error:', error);
+      console.error('Manual ingestion trigger error:', error);
       res.status(500).json({
         success: false,
-        message: 'Error fetching articles from Guardian API'
+        message: 'Error running ingestion pipeline'
       });
     }
   }
@@ -327,7 +263,8 @@ router.get('/feed',
       const page = parseInt(req.query.page as string) || 1;
 
       const query: any = {
-        cefrLevel: user.cefrLevel
+        cefrLevel: user.cefrLevel,
+        isActive: { $ne: false }
       };
 
       if (type) {
@@ -425,6 +362,7 @@ router.get('/search',
       const page = parseInt(req.query.page as string) || 1;
 
       const query: any = {
+        isActive: { $ne: false },
         $or: [
           { title: { $regex: searchQuery, $options: 'i' } },
           { description: { $regex: searchQuery, $options: 'i' } },
@@ -505,7 +443,8 @@ router.get('/category/:category',
 
       const mediaQuery = {
         categories: category,
-        cefrLevel: user.cefrLevel
+        cefrLevel: user.cefrLevel,
+        isActive: { $ne: false }
       };
 
       const total = await Media.countDocuments(mediaQuery);

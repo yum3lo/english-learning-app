@@ -17,8 +17,16 @@ export interface IMedia extends Document {
     transcriptSegments?: { start: number; duration: number; text: string }[];
   };
   cefrLevel: CEFRLevel;
+  cefrReasoning?: string;
   categories: string[];
+  tags?: string[];
   vocabularyWords: mongoose.Types.ObjectId[];
+  externalId?: string;
+  wordCount?: number;
+  readingMinutes?: number;
+  language?: string;
+  publishedAt?: Date;
+  isActive?: boolean;
   createdAt: Date;
 }
 
@@ -72,14 +80,51 @@ const mediaSchema = new Schema<IMedia>({
     type: String,
     enum: CEFR_LEVELS
   },
+  cefrReasoning: {
+    type: String,
+    trim: true
+  },
   categories: [{
     type: String,
     enum: CATEGORIES,
   }],
+  tags: [{
+    type: String,
+    trim: true
+  }],
   vocabularyWords: [{
     type: Schema.Types.ObjectId,
     ref: 'VocabularyWord'
-  }]
+  }],
+  // dedup key for pipeline-ingested content, e.g. "guardian:<id>" or "wikipedia:<title>";
+  // sparse so older/manually-added docs without one don't collide on the unique index
+  externalId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true
+  },
+  wordCount: {
+    type: Number,
+    min: 0
+  },
+  readingMinutes: {
+    type: Number,
+    min: 0
+  },
+  language: {
+    type: String,
+    default: 'en'
+  },
+  // the source's own publication date, distinct from createdAt (ingestion time)
+  publishedAt: {
+    type: Date,
+    default: Date.now
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  }
 }, {
   timestamps: true
 });
@@ -89,5 +134,6 @@ mediaSchema.index({ cefrLevel: 1, categories: 1 });
 mediaSchema.index({ type: 1, cefrLevel: 1 });
 mediaSchema.index({ source: 1 });
 mediaSchema.index({ createdAt: -1 });
+mediaSchema.index({ publishedAt: -1 });
 
 export default mongoose.model<IMedia>('Media', mediaSchema);

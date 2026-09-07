@@ -13,11 +13,13 @@ import mediaRoutes from './routes/media';
 import dictionaryRoutes from './routes/dictionary';
 import cefrRoutes from './routes/cefr';
 import { errorHandler } from './middleware/errorHandler';
+import { startIngestionScheduler } from './pipeline/scheduler';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 connectDB();
+startIngestionScheduler();
 
 app.use(helmet());
 const rawClientUrls = process.env.CLIENT_URL || '';

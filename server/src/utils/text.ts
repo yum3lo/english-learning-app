@@ -15,3 +15,11 @@ export const stripHtml = (html?: string): string => {
   if (!html) return '';
   return decodeHtmlEntities(html.replace(/<[^>]*>/g, '')).trim();
 };
+
+export const countWords = (text: string): number => {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+};
+
+export const estimateReadingMinutes = (wordCount: number): number => {
+  return Math.max(1, Math.round(wordCount / 200));
+};

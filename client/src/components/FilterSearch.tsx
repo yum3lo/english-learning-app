@@ -39,9 +39,9 @@ const FilterSearch = ({
     searchTerm || selectedCategory !== 'all' || (selectedDuration && selectedDuration !== 'all')
   );
 
-  const categoryOptions: readonly string[] = user?.fieldsOfInterest?.length
+  const categoryOptions: readonly string[] = [...(user?.fieldsOfInterest?.length
     ? user.fieldsOfInterest
-    : CATEGORIES;
+    : CATEGORIES)].sort((a, b) => a.localeCompare(b));
 
   return (
     <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 w-full flex-1">

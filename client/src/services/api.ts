@@ -75,10 +75,6 @@ export const mediaAPI = {
     const response = await api.get(`/media/category/${category}`, { params });
     return response.data;
   },
-  fetchGuardianArticles: async (params?: { category?: string; limit?: number }) => {
-    const response = await api.get('/media/guardian/fetch', { params });
-    return response.data;
-  },
   fetchYoutubeVideos: async (params?: { category?: string; limit?: number }) => {
     // formatting and classifying each new video via OpenAI can take a while, so allow more time
     const response = await api.get('/media/youtube/fetch', { params, timeout: 120000 });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, RefreshCcw } from 'lucide-react';
 import MediaGrid from '@/components/MediaGrid';
@@ -21,34 +21,23 @@ const ReadingPage = () => {
 
   const { toast } = useToast();
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const gridEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const fetchArticles = async (tryGuardianIfEmpty = true) => {
+    const fetchArticles = async () => {
       setLoading(true);
       try {
         const response = await mediaAPI.getRecommendations({
           type: 'article',
-          limit: 20
+          limit: 20,
+          page: 1
         });
         if (response.success) {
-          const articles = response.recommendations;
-          if (articles.length === 0 && tryGuardianIfEmpty) {
-            const guardianResp = await mediaAPI.fetchGuardianArticles({ limit: 10 });
-            if (guardianResp?.success && guardianResp.articles && guardianResp.articles.length > 0) {
-              await fetchArticles(false);
-              toast({
-                title: `${guardianResp.articles.length} new articles added`,
-                description: 'New articles fetched.',
-              });
-              return;
-            } else {
-              toast({
-                title: 'No articles available',
-                description: 'No articles could be fetched.',
-              });
-            }
-          }
-          setAll(articles);
+          setAll(response.recommendations);
+          setPage(1);
+          setHasMore(response.pagination.page < response.pagination.totalPages);
         } else {
           throw new Error('Failed to fetch articles');
         }
@@ -81,33 +70,38 @@ const ReadingPage = () => {
   const handleLoadMore = async () => {
     setIsFetchingMore(true);
     try {
-      // requesting server to fetch new articles from Guardian and save only new ones
-      const response = await mediaAPI.fetchGuardianArticles({
-        category: selectedCategory !== 'all' ? selectedCategory : undefined,
-        limit: 10
+      const nextPage = page + 1;
+      const response = await mediaAPI.getRecommendations({
+        type: 'article',
+        limit: 20,
+        page: nextPage
       });
 
-      if (response?.success && response.articles && response.articles.length > 0) {
-        const newArticles = response.articles as any[];
-        const combined = [...newArticles, ...all];
-
-        setAll(combined);
-
+      if (response.success && response.recommendations.length > 0) {
+        setAll(prev => [...prev, ...response.recommendations]);
+        setPage(nextPage);
+        setHasMore(response.pagination.page < response.pagination.totalPages);
         toast({
-          title: `${response.articles.length} new articles added`,
-          description: 'New articles fetched from The Guardian.',
+          title: `${response.recommendations.length} more articles loaded`,
+          description: 'Scroll down to see them.',
+        });
+        // the new cards render at the end of the grid, below whatever was already on screen -
+        // without this, "Load more" looks like it did nothing since nothing visible changes
+        requestAnimationFrame(() => {
+          gridEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         });
       } else {
+        setHasMore(false);
         toast({
-          title: 'No new articles',
-          description: 'No unseen articles were available from The Guardian.',
+          title: 'No more articles',
+          description: "You've reached the end of the available articles. New ones are added automatically every few hours.",
         });
       }
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error fetching new articles',
-        description: 'There was a problem fetching new articles. Try again later.'
+        title: 'Error fetching more articles',
+        description: 'There was a problem loading more articles. Try again later.'
       });
     } finally {
       setIsFetchingMore(false);
@@ -140,7 +134,7 @@ const ReadingPage = () => {
             />
             <Button
               onClick={handleLoadMore}
-              disabled={isFetchingMore}
+              disabled={isFetchingMore || !hasMore}
               aria-label={isFetchingMore ? 'Loading more articles' : 'Load more articles'}
               variant="secondary"
             >
@@ -151,12 +145,15 @@ const ReadingPage = () => {
 
           <div className="mb-8">
             <MediaGrid items={filtered} />
+            <div ref={gridEndRef} />
           </div>
 
           {filtered.length === 0 && (
             <EmptyState
               title="No articles found"
-              description="Try adjusting your search criteria or filters to find more articles that match your interests."
+              description={all.length === 0
+                ? "New articles are added automatically every few hours - check back soon."
+                : "Try adjusting your search criteria or filters to find more articles that match your interests."}
             />
           )}
         </>
