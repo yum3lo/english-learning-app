@@ -53,11 +53,7 @@ The app features a special welcome experience for my mom, complete with personal
 
 2. Install dependencies
    ```bash
-   # Install client dependencies
-   cd client; npm install
-
-   # Install server dependencies
-   cd ../server; npm install
+   npm run install:all
    ```
 
 3. Configure environment variables
@@ -108,12 +104,9 @@ The app features a special welcome experience for my mom, complete with personal
 
 4. Start the development servers
    ```bash
-   # Terminal 1 - Start the backend server
-   cd server; npm run dev
-
-   # Terminal 2 - Start the frontend
-   cd client; npm run dev
+   npm run dev
    ```
+   This runs the backend and frontend together (via `concurrently`). To run them separately, use `cd server; npm run dev` and `cd client; npm run dev` in two terminals.
 
 5. Add audio files (optional)
    - Place your birthday song at `client/public/sounds/happy-birthday.mp3` — the app will play it when the special popup appears
