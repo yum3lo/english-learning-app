@@ -16,6 +16,10 @@ export const stripHtml = (html?: string): string => {
   return decodeHtmlEntities(html.replace(/<[^>]*>/g, '')).trim();
 };
 
+export const escapeRegExp = (text: string): string => {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 export const countWords = (text: string): number => {
   return text.trim().split(/\s+/).filter(Boolean).length;
 };

@@ -5,7 +5,7 @@ import { authenticate, AuthenticatedRequest } from '../middleware/auth';
 import youtubeService from '../api/youtubeAPI';
 import { CATEGORIES, CEFRLevel } from '../constants/categories';
 import { classifyTextWithOpenAI } from '../services/cefrClassificationService';
-import { stripHtml, decodeHtmlEntities } from '../utils/text';
+import { stripHtml, decodeHtmlEntities, escapeRegExp } from '../utils/text';
 import { runIngestionPipeline } from '../pipeline';
 
 const router = express.Router();
@@ -356,7 +356,7 @@ router.get('/search',
         return;
       }
 
-      const searchQuery = req.query.q as string;
+      const searchQuery = escapeRegExp(req.query.q as string);
       const type = req.query.type as string | undefined;
       const limit = parseInt(req.query.limit as string) || 20;
       const page = parseInt(req.query.page as string) || 1;
