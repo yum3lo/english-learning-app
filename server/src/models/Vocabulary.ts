@@ -15,6 +15,8 @@ export interface IVocabularyWord extends Document {
   lemma?: string;
   phonetic?: string;
   audioUrl?: string;
+  formOf?: string;
+  formOfRoots?: string[];
   cefrLevel: CEFRLevel;
   senses: ISense[];
 
@@ -73,6 +75,14 @@ const vocabularyWordSchema = new Schema<IVocabularyWord>({
   audioUrl: {
     type: String,
     trim: true
+  },
+  formOf: {
+    type: String,
+    trim: true
+  },
+  formOfRoots: {
+    type: [String],
+    default: undefined
   },
   cefrLevel: {
     type: String,

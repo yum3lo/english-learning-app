@@ -23,28 +23,65 @@ interface DictionaryContext {
   sourceIsModel: boolean;
 }
 
-// flattens the external dictionaryapi.dev meanings[]/definitions[] shape into one sense per
-// part-of-speech x definition pair, matching our simpler ISense[] storage shape
-function flattenSenses(meanings: any[]): ISense[] {
-  const senses: ISense[] = [];
-  for (const meaning of meanings || []) {
-    for (const def of meaning.definitions || []) {
-      senses.push({
-        partOfSpeech: meaning.partOfSpeech || 'unknown',
-        definition: def.definition || '',
-        example: def.example,
-        synonyms: def.synonyms || [],
-        antonyms: def.antonyms || [],
-      });
+function lemmaCandidates(word: string): string[] {
+  return Array.from(new Set(
+    [lemmatizer.verb(word), lemmatizer.noun(word), lemmatizer.adjective(word)]
+      .filter(candidate => candidate && candidate !== word)
+  ));
+}
+
+function isFormOf(sense: any): boolean {
+  return Array.isArray(sense.tags) && sense.tags.includes('form of');
+}
+
+// flattens the external freedictionaryapi.com entries[]/senses[] shape (one entry per
+// part-of-speech, each holding multiple senses) into the simpler flat ISense[] storage shape,
+// separating real definitions from "form of X" grammatical pointers
+function flattenSenses(entries: any[]): { real: ISense[]; formOf: ISense[] } {
+  const real: ISense[] = [];
+  const formOf: ISense[] = [];
+  for (const entry of entries || []) {
+    for (const sense of entry.senses || []) {
+      const flat: ISense = {
+        partOfSpeech: entry.partOfSpeech || 'unknown',
+        definition: sense.definition || '',
+        example: sense.examples?.[0],
+        synonyms: sense.synonyms || [],
+        antonyms: sense.antonyms || [],
+      };
+      (isFormOf(sense) ? formOf : real).push(flat);
     }
   }
-  return senses;
+  return { real, formOf };
+}
+
+interface RawEntry {
+  phonetic?: string;
+  real: ISense[];
+  formOf: ISense[];
+}
+
+async function fetchRawEntry(word: string): Promise<RawEntry | null> {
+  const apiUrl = `https://freedictionaryapi.com/api/v1/entries/en/${encodeURIComponent(word)}`;
+  const response = await axios.get(apiUrl, { timeout: 5000 });
+  const data = response.data;
+  if (!data?.entries || data.entries.length === 0) return null;
+
+  const { real, formOf } = flattenSenses(data.entries);
+  return {
+    // this API doesn't expose pronunciation audio, only IPA text
+    phonetic: data.entries[0]?.pronunciations?.[0]?.text || undefined,
+    real,
+    formOf,
+  };
 }
 
 interface DictionaryEntry {
   phonetic?: string;
   audioUrl?: string;
   senses: ISense[];
+  formOf?: string;
+  formOfRoots?: string[];
 }
 
 type LookupResult =
@@ -53,34 +90,40 @@ type LookupResult =
 
 async function fetchDictionaryEntry(word: string): Promise<LookupResult> {
   try {
-    const apiUrl = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`;
-    const response = await axios.get(apiUrl, { timeout: 5000 });
-    const data = response.data;
-    if (!Array.isArray(data) || data.length === 0) return { found: false, unavailable: false };
+    const raw = await fetchRawEntry(word);
+    if (!raw) return { found: false, unavailable: false };
 
-    const fetched = data[0];
+    let senses = raw.real;
+    const formOfRoots: string[] = [];
+
+    if (raw.formOf.length > 0) {
+      for (const candidate of lemmaCandidates(word)) {
+        try {
+          const base = await fetchRawEntry(candidate);
+          if (base) {
+            senses = senses.concat(base.real);
+            formOfRoots.push(candidate);
+          }
+        } catch {
+        }
+      }
+      if (senses.length === 0) senses = raw.formOf;
+    }
+
     return {
       found: true,
       entry: {
-        phonetic: fetched.phonetic || fetched.phonetics?.[0]?.text || undefined,
-        audioUrl: fetched.phonetics?.find((p: any) => p.audio)?.audio || undefined,
-        senses: flattenSenses(fetched.meanings),
+        phonetic: raw.phonetic,
+        audioUrl: undefined,
+        senses,
+        formOf: raw.formOf[0]?.definition,
+        formOfRoots: formOfRoots.length > 0 ? formOfRoots : undefined,
       },
     };
   } catch (err: any) {
-    const isRealNotFound = err?.response?.status === 404;
-    if (!isRealNotFound) {
-      console.warn(`External dictionary lookup failed for "${word}":`, err?.message || err);
-    }
-    return { found: false, unavailable: !isRealNotFound };
+    console.warn(`External dictionary lookup failed for "${word}":`, err?.message || err);
+    return { found: false, unavailable: true };
   }
-}
-
-function lemmaCandidates(word: string): string[] {
-  return Array.from(new Set(
-    [lemmatizer.verb(word), lemmatizer.noun(word), lemmatizer.adjective(word)]
-      .filter(candidate => candidate && candidate !== word)
-  ));
 }
 
 // GET /api/dictionary/:word?sentence=...
@@ -103,6 +146,8 @@ router.get('/:word', async (req, res) => {
       let audioUrl: string | undefined;
       let senses: ISense[] = [];
       let resolvedLemma: string | undefined;
+      let formOf: string | undefined;
+      let formOfRoots: string[] | undefined;
 
       if (CONTRACTIONS[key]) {
         // dictionaryapi.dev either lacks contractions entirely ("won't") or indexes an
@@ -131,6 +176,8 @@ router.get('/:word', async (req, res) => {
           phonetic = result.entry.phonetic;
           audioUrl = result.entry.audioUrl;
           senses = result.entry.senses;
+          formOf = result.entry.formOf;
+          formOfRoots = result.entry.formOfRoots;
         } else if (result.unavailable) {
           // don't cache anything - we don't actually know whether this word has a
           // definition, only that we couldn't ask the external dictionary right now
@@ -143,7 +190,7 @@ router.get('/:word', async (req, res) => {
         { word: key },
         {
           $setOnInsert: { word: key, cefrLevel: 'B2' },
-          $set: { phonetic, audioUrl, senses, ...(resolvedLemma ? { lemma: resolvedLemma } : {}) },
+          $set: { phonetic, audioUrl, senses, formOf, formOfRoots, ...(resolvedLemma ? { lemma: resolvedLemma } : {}) },
         },
         { upsert: true, new: true }
       );
@@ -218,6 +265,8 @@ router.get('/:word', async (req, res) => {
         phonetic: vocabWord!.phonetic,
         phonetics: vocabWord!.phonetic ? [{ text: vocabWord!.phonetic, audio: vocabWord!.audioUrl }] : [],
         senses,
+        formOf: vocabWord!.formOf,
+        formOfRoots: vocabWord!.formOfRoots,
         context,
       },
     });

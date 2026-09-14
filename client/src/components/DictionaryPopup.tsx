@@ -11,6 +11,19 @@ const SOURCE_LABELS: Record<SourceMediaType, string> = {
   video: 'In this video',
 };
 
+const renderFormOf = (text: string, roots?: string[]) => {
+  if (!roots || roots.length === 0) return text;
+
+  const pattern = new RegExp(`\\b(${roots.map(r => r.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+  const parts = text.split(pattern);
+
+  return parts.map((part, i) =>
+    roots.some(r => r.toLowerCase() === part.toLowerCase())
+      ? <strong key={i} className="font-semibold">{part}</strong>
+      : part
+  );
+};
+
 interface DictionaryPopupProps {
   word: string;
   dictionaryData: DictionaryEntry | null;
@@ -141,6 +154,11 @@ const DictionaryPopup = ({
             <>
               {dictionaryData.context && (
                 <div className="space-y-2">
+                  {dictionaryData.formOf && (
+                    <p className="text-sm leading-relaxed">
+                      <span className="font-medium">Form of:</span> {renderFormOf(dictionaryData.formOf, dictionaryData.formOfRoots)}
+                    </p>
+                  )}
                   <p className="text-sm leading-relaxed">
                     <span className="font-medium">Definition:</span> {dictionaryData.context.definition}
                   </p>

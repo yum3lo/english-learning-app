@@ -25,6 +25,8 @@ export interface DictionaryEntry {
   phonetic?: string;
   phonetics: DictionaryPhonetic[];
   senses: DictionarySense[];
+  formOf?: string;
+  formOfRoots?: string[];
   context: DictionaryContext | null;
 }
 
