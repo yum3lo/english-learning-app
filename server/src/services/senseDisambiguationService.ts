@@ -11,7 +11,7 @@ export interface DisambiguationResult {
   confidence: 'high' | 'medium' | 'low';
 }
 
-const TIMEOUT_MS = 3000;
+const TIMEOUT_MS = 8000;
 const VALID_CONFIDENCE = new Set(['high', 'medium', 'low']);
 
 export async function disambiguateSense(
