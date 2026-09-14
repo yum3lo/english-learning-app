@@ -238,26 +238,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const recordMediaCompleted = async (mediaType: 'article' | 'video', mediaId: string): Promise<void> => {
     try {
-      const token = authStorage.getToken();
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
+      const data = await userAPI.recordMediaCompletion(mediaType, mediaId);
 
-      const response = await fetch('/api/users/progress/media-completed', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ mediaType, mediaId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to record media completion');
-      }
-
-      const data = await response.json();
-      
       if (user) {
         const updatedUser = { 
           ...user, 
