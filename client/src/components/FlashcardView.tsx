@@ -51,7 +51,7 @@ const Flashcard = ({ vocabulary, mode, userAnswer, onAnswerChange, onSubmit, sho
   };
 
   return (
-    <Card className={cn('w-full transition-all duration-300 hover:shadow-lg border-t-[3px]', stage.borderClass)}>
+    <Card className='w-full transition-all duration-300 hover:shadow-lg'>
       <CardContent className="p-6 md:p-8 text-center space-y-4">
         <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground mb-2">
           <StageIcon className={cn('h-4 w-4', stage.iconColorClass)} />

@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import flower from '../assets/flower.png';
 import ladybug from '../assets/ladybug.png';
-import rabbit from '../assets/rabbit.png';
-import butterfly from '../assets/butterfly.png';
 import squirrel from '../assets/squirrel.png';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -117,36 +114,19 @@ const RegisterPage = () => {
   };
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted py-12 px-4 sm:px-6 lg:px-8">
-      <img
-        src={butterfly}
-        alt="Butterfly"
-        className="w-[120px] absolute left-[10%] top-[20%] rotate-[-10deg]"
-      />
-
-      <img
-        src={rabbit}
-        alt="Rabbit"
-        className="w-[260px] absolute left-[14%] bottom-[15%] rotate-[-2deg]"
-      />
-      
-      <img
-        src={squirrel}
-        alt="Squirrel"
-        className="w-[160px] absolute right-[10%] top-[27%] rotate-[-2deg]"
-      />
-
-      <img
-        src={flower}
-        alt="Flower"
-        className="w-[160px] absolute right-[20%] bottom-[13%]"
-      />
-
-      <Card className="max-w-lg w-full bg-background shadow-lg relative">
+      <Card className="max-w-lg w-full bg-background shadow-lg relative">       
         <img
           src={ladybug}
           alt="Ladybug"
-          className="w-14 absolute right-[-4px] top-0"
+          className="w-14 absolute left-[-2%] top-0 rotate-[7deg]"
         />
+
+        <img
+          src={squirrel}
+          alt="Squirrel"
+          className="w-[160px] absolute right-[-5%] top-[33%]"
+        />
+        
         <CardHeader className="text-center">
           <CardTitle className="text-3xl">
             Plant your garden

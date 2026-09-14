@@ -7,7 +7,7 @@ import ClickableText from './ClickableText';
 import InteractiveMarkdownRenderer from './InteractiveMarkdownRenderer';
 import { formatDuration } from '@/constants/categories';
 import type { TranscriptSegment } from '@/data/mediaData';
-import ladybug from '@/assets/ladybug.png';
+import hummingbird from '@/assets/hummingbird.png';
 
 declare global {
   interface Window {
@@ -290,7 +290,7 @@ const VideoPlayer = ({
           </Card>
         )}
 
-        <img src={ladybug} alt="Ladybug" className="w-16 h-16 mx-auto mt-[25%] select-none pointer-events-none hidden xl:block" />
+        <img src={hummingbird} alt="Hummingbird" className="w-[180px] h-auto mx-auto mt-[25%] select-none pointer-events-none hidden xl:block" />
       </div>
     </div>
   );

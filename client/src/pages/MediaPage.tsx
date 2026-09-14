@@ -354,7 +354,7 @@ const MediaPage = () => {
               <img
                 src={teapot}
                 alt=""
-                className="w-40 mx-auto mt-[50%] select-none pointer-events-none hidden lg:block"
+                className="w-40 mx-auto mt-[11vw] select-none pointer-events-none hidden lg:block"
               />
             </div>
           </div>

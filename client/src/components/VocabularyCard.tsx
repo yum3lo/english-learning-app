@@ -38,7 +38,7 @@ const VocabularyCard = ({ vocabulary, onWordClick }: VocabularyCardProps) => {
   const hasPronunciation = vocabulary.pronunciation && vocabulary.pronunciation !== 'No pronunciation available';
 
   return (
-    <Card className={cn('shadow-md hover:shadow-lg transition-shadow duration-200 border-t-[3px]', stage.borderClass)}>
+    <Card className='shadow-md hover:shadow-lg transition-shadow duration-200'>
       <CardHeader className="p-4 sm:p-5">
         <CardTitle>
           <div className="flex items-start justify-between gap-2">
