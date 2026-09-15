@@ -178,7 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       toast({
         title: "Registered successfully!",
-        description: "Welcome to English Learning App. You can now start your learning journey.",
+        description: "Welcome to English Ivy. You can now start your learning journey.",
       });
 
       setUser(data.user);

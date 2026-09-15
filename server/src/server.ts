@@ -61,7 +61,7 @@ app.use('/api/cefr', cefrRoutes);
 app.get('/api/health', (req, res) => {
   res.status(200).json({ 
     status: 'OK', 
-    message: 'English Learning App Server is running',
+    message: 'English Ivy Server is running',
     timestamp: new Date().toISOString()
   });
 });

@@ -48,7 +48,7 @@ const Navbar = () => {
               alt="Logo"
               className="h-10 mr-3"
             />
-            <span className="text-2xl font-bold hidden md:block">English Learning App</span>
+            <span className="text-2xl font-bold hidden md:block">English Ivy</span>
             <span className="text-2xl font-bold md:hidden">ELA</span>
           </NavLink>
         </div>

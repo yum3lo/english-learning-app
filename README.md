@@ -1,4 +1,4 @@
-# English Learning App
+# English Ivy
 
 A personalized English learning application built to make language learning engaging and fun.
 
