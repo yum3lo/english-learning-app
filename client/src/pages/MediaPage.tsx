@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Clock, Calendar, Newspaper, Sprout, Trophy, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Newspaper, Sprout, Trophy, CheckCircle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -100,10 +100,8 @@ const MediaPage = () => {
       }
     };
 
-    if (user) {
-      fetchMediaData();
-    }
-  }, [id, user, navigate, toast]);
+    fetchMediaData();
+  }, [id, navigate, toast]);
 
   useEffect(() => {
     if (media && id && user) {
@@ -217,7 +215,8 @@ const MediaPage = () => {
               onWordClick={(word, sentence) => handleWordClick(word, sentence, media.type)}
               isCompleted={isCompleted}
               isCompleting={isCompleting}
-              onMarkComplete={handleCompleteMedia}
+              onMarkComplete={user ? handleCompleteMedia : undefined}
+              showLoginToTrack={!user}
               sessionWordsPlanted={sessionWordsPlanted}
               sessionPoints={sessionPoints}
             />
@@ -278,7 +277,9 @@ const MediaPage = () => {
               {hasContent && (
                 <div className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-lg px-3 py-2">
                   <Sprout className="w-4 h-4 text-secondary" />
-                  Tap any word to see its meaning and plant it in your garden
+                  {user
+                    ? 'Tap any word to see its meaning and plant it in your garden'
+                    : 'Tap any word to see its meaning'}
                 </div>
               )}
 
@@ -335,19 +336,28 @@ const MediaPage = () => {
                 </div>
 
                 {hasContent && (
-                  <Button
-                    onClick={handleCompleteMedia}
-                    disabled={isCompleting || isCompleted}
-                    className="w-full mt-3"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    {isCompleted
-                      ? 'Article completed!'
-                      : isCompleting
-                        ? 'Marking as complete...'
-                        : 'Mark as read'
-                    }
-                  </Button>
+                  user ? (
+                    <Button
+                      onClick={handleCompleteMedia}
+                      disabled={isCompleting || isCompleted}
+                      className="w-full mt-3"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      {isCompleted
+                        ? 'Article completed!'
+                        : isCompleting
+                          ? 'Marking as complete...'
+                          : 'Mark as read'
+                      }
+                    </Button>
+                  ) : (
+                    <Button asChild variant="outline" className="w-full mt-3">
+                      <Link to="/login">
+                        <LogIn className="w-4 h-4" />
+                        Log in to mark as read
+                      </Link>
+                    </Button>
+                  )
                 )}
               </Card>
 

@@ -1,4 +1,5 @@
-import { X, BookOpen, Sprout, Loader2, ChevronDown } from 'lucide-react';
+import { X, BookOpen, Sprout, Loader2, ChevronDown, LogIn } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import type { DictionaryEntry } from '@/types/dictionary';
@@ -60,16 +61,27 @@ const DictionaryPopup = ({
 
   const hasSenses = (dictionaryData?.senses.length ?? 0) > 0;
 
-  const plantButton = !alreadyLearned && dictionaryData?._id && (
+  const plantButton = dictionaryData?._id && (
     <div className="flex justify-center pt-4">
-      <Button
-        onClick={onAddToLearned}
-        disabled={isAddingToLearned}
-        className="flex items-center gap-2"
-      >
-        <Sprout className="w-4 h-4" />
-        {isAddingToLearned ? 'Planting...' : 'Plant in my garden'}
-      </Button>
+      {user ? (
+        !alreadyLearned && (
+          <Button
+            onClick={onAddToLearned}
+            disabled={isAddingToLearned}
+            className="flex items-center gap-2"
+          >
+            <Sprout className="w-4 h-4" />
+            {isAddingToLearned ? 'Planting...' : 'Plant in my garden'}
+          </Button>
+        )
+      ) : (
+        <Button asChild variant="outline" className="flex items-center gap-2">
+          <Link to="/login">
+            <LogIn className="w-4 h-4" />
+            Log in to plant it
+          </Link>
+        </Button>
+      )}
     </div>
   );
 

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import logo from "../assets/logo.png";
 import { Button } from "./ui/button";
-import { User, LogOut, Menu, X } from "lucide-react";
+import { User, LogOut, Menu, X, Sprout, BookOpen, Headphones } from "lucide-react";
 import { Avatar, AvatarFallback } from "./ui/avatar";
 
 const Navbar = () => {
@@ -48,41 +48,43 @@ const Navbar = () => {
               alt="Logo"
               className="h-10 mr-3"
             />
-            <span className="text-2xl font-bold hidden md:block">English Ivy</span>
-            <span className="text-2xl font-bold md:hidden">ELA</span>
+            <span className="text-2xl font-bold">English Ivy</span>
           </NavLink>
         </div>
 
-        <div className="hidden md:flex items-center justify-end space-x-4">
+        <div className="hidden sm:flex items-center justify-end space-x-4">
+          <NavLink
+            to="/reading"
+            className={linkClass}
+          >
+            <span className="hidden md:inline">Reading</span>
+            <BookOpen className="w-6 h-6 md:hidden" strokeWidth={1.75} />
+          </NavLink>
+
+          <NavLink
+            to="/listening"
+            className={linkClass}
+          >
+            <span className="hidden md:inline">Listening</span>
+            <Headphones className="w-6 h-6 md:hidden" strokeWidth={1.75} />
+          </NavLink>
+
+          <NavLink
+            to="/vocabulary"
+            className={linkClass}
+          >
+            <span className="hidden md:inline">Vocabulary</span>
+            <Sprout className="w-6 h-6 md:hidden" strokeWidth={1.75} />
+          </NavLink>
+
           {isAuthenticated && user ? (
-            <>              
-              <NavLink
-                to="/vocabulary"
-                className={linkClass}
-              >
-                Vocabulary
-              </NavLink>
-
-              <NavLink
-                to="/reading"
-                className={linkClass}
-              >
-                Reading
-              </NavLink>
-
-              <NavLink
-                to="/listening"
-                className={linkClass}
-              >
-                Listening
-              </NavLink>
-
+            <>
               <NavLink
                 to="/profile"
               >
                 <Avatar>
                   <AvatarFallback>
-                    {user ? getInitials(user.name) : <User />}
+                    {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
               </NavLink>
@@ -91,7 +93,7 @@ const Navbar = () => {
                 onClick={logout}
                 variant="ghost"
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-6 w-6" />
               </Button>
             </>
           ):(
@@ -106,7 +108,7 @@ const Navbar = () => {
           )}
         </div>
 
-        <div className="md:hidden">
+        <div className="sm:hidden">
           <Button
             variant="ghost"
             size="icon"
@@ -124,43 +126,45 @@ const Navbar = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-background border-t">
+        <div className="sm:hidden bg-background border-t">
           <div className="container mx-auto px-4 py-4 space-y-2">
+            {isAuthenticated && user && (
+              <div className="flex items-center gap-3 pb-3 border-b">
+                <Avatar>
+                  <AvatarFallback>
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="font-medium">{user.name}</span>
+              </div>
+            )}
+
+            <NavLink
+              to="/vocabulary"
+              className={mobileLinkClass}
+              onClick={closeMobileMenu}
+            >
+              Vocabulary
+            </NavLink>
+
+            <NavLink
+              to="/reading"
+              className={mobileLinkClass}
+              onClick={closeMobileMenu}
+            >
+              Reading
+            </NavLink>
+
+            <NavLink
+              to="/listening"
+              className={mobileLinkClass}
+              onClick={closeMobileMenu}
+            >
+              Listening
+            </NavLink>
+
             {isAuthenticated && user ? (
               <>
-                <div className="flex items-center gap-3 pb-3 border-b">
-                  <Avatar>
-                    <AvatarFallback>
-                      {user ? getInitials(user.name) : <User />}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{user.name}</span>
-                </div>
-                
-                <NavLink
-                  to="/vocabulary"
-                  className={mobileLinkClass}
-                  onClick={closeMobileMenu}
-                >
-                  Vocabulary
-                </NavLink>
-
-                <NavLink
-                  to="/reading"
-                  className={mobileLinkClass}
-                  onClick={closeMobileMenu}
-                >
-                  Reading
-                </NavLink>
-
-                <NavLink
-                  to="/listening"
-                  className={mobileLinkClass}
-                  onClick={closeMobileMenu}
-                >
-                  Listening
-                </NavLink>
-
                 <NavLink
                   to="/profile"
                   className={mobileLinkClass}
@@ -186,15 +190,15 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                <NavLink 
-                  to="/register" 
+                <NavLink
+                  to="/register"
                   className={mobileLinkClass}
                   onClick={closeMobileMenu}
                 >
                   Register
                 </NavLink>
-                <NavLink 
-                  to="/login" 
+                <NavLink
+                  to="/login"
                   className={mobileLinkClass}
                   onClick={closeMobileMenu}
                 >

@@ -31,31 +31,11 @@ const AppContent = () => {
             <ProfilePage />
           </ProtectedRoute>
         } />
-        <Route path="reading" element={
-          <ProtectedRoute>
-            <ReadingPage />
-          </ProtectedRoute>
-        } />
-        <Route path="reading/:id" element={
-          <ProtectedRoute>
-            <MediaPage />
-          </ProtectedRoute>
-        } />
-        <Route path="listening" element={
-          <ProtectedRoute>
-            <ListeningPage />
-          </ProtectedRoute>
-        } />
-        <Route path="listening/:id" element={
-          <ProtectedRoute>
-            <MediaPage />
-          </ProtectedRoute>
-        } />
-        <Route path="vocabulary" element={
-          <ProtectedRoute>
-            <VocabularyPage />
-          </ProtectedRoute>
-        } />
+        <Route path="reading" element={<ReadingPage />} />
+        <Route path="reading/:id" element={<MediaPage />} />
+        <Route path="listening" element={<ListeningPage />} />
+        <Route path="listening/:id" element={<MediaPage />} />
+        <Route path="vocabulary" element={<VocabularyPage />} />
         <Route path="flashcards" element={
           <ProtectedRoute>
             <FlashcardsPage />

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { BookOpen, Headphones, Flower, Flame, Zap, Edit3, Mail, Sprout, TrendingUp, Save, X } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -29,18 +29,7 @@ const ProfilePage = () => {
     }
   }, [user]);
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle>Not Authenticated</CardTitle>
-            <p className="text-sm text-muted-foreground">Please log in to view your profile.</p>
-          </CardHeader>
-        </Card>
-      </div>
-    );
-  }
+  if (!user) return null;
 
   const statsData = [
     {
@@ -65,7 +54,7 @@ const ProfilePage = () => {
       title: "Day streak",
       value: user.streakCount || 0,
       icon: Flame,
-      color: "text-accent",
+      color: "text-blue",
     },
   ];
 
@@ -152,7 +141,7 @@ const ProfilePage = () => {
         <div className="bg-primary rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-4 min-w-0">
             <Avatar className="w-14 h-14 shrink-0">
-              <AvatarFallback className="text-lg font-semibold bg-bloom text-bloom-foreground">
+              <AvatarFallback className="text-lg font-semibold bg-blue text-bloom-foreground">
                 {getInitials(user.name)}
               </AvatarFallback>
             </Avatar>
@@ -200,7 +189,7 @@ const ProfilePage = () => {
 
           <div className="text-left sm:text-right shrink-0">
             <p className="text-sm text-primary-foreground/70">Current level</p>
-            <Badge className="bg-secondary text-secondary-foreground rounded-full mt-1 hover:bg-secondary/90 transition-colors">
+            <Badge className="bg-accent text-accent-foreground rounded-full mt-1 border-0">
               {user.cefrLevel}
             </Badge>
           </div>
@@ -325,12 +314,12 @@ const ProfilePage = () => {
             ) : user.fieldsOfInterest.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {user.fieldsOfInterest.map((interest, index) => (
-                  <span
+                  <Badge
                     key={index}
-                    className="bg-secondary/15 text-secondary text-sm font-medium px-3 py-1 rounded-full"
+                    variant="blue"
                   >
                     {interest}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             ) : (

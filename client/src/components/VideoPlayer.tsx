@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { ArrowUpDown, Sprout, Trophy, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowUpDown, Sprout, Trophy, CheckCircle, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -57,6 +58,7 @@ interface VideoPlayerProps {
   isCompleted?: boolean;
   isCompleting?: boolean;
   onMarkComplete?: () => void;
+  showLoginToTrack?: boolean;
   sessionWordsPlanted?: number;
   sessionPoints?: number;
 }
@@ -74,6 +76,7 @@ const VideoPlayer = ({
   isCompleted,
   isCompleting,
   onMarkComplete,
+  showLoginToTrack,
   sessionWordsPlanted,
   sessionPoints,
 }: VideoPlayerProps) => {
@@ -193,7 +196,7 @@ const VideoPlayer = ({
             </div>
           )}
 
-          {onMarkComplete && (
+          {onMarkComplete ? (
             <Button
               onClick={onMarkComplete}
               disabled={isCompleting || isCompleted}
@@ -208,7 +211,14 @@ const VideoPlayer = ({
                   : 'Mark as complete'
               }
             </Button>
-          )}
+          ) : showLoginToTrack ? (
+            <Button asChild variant="outline" size="sm" className="mt-3">
+              <Link to="/login">
+                <LogIn className="w-4 h-4" />
+                Log in to mark as watched
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </div>
 

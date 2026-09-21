@@ -160,9 +160,11 @@ const VocabularyPage = () => {
             title="My vocabulary garden"
             description="Every word you save takes root here. Tend it to watch it bloom."
           />
-          <Link to="/flashcards" className="btn-primary whitespace-nowrap">
-            Practice flashcards
-          </Link>
+          {user && (
+            <Link to="/flashcards" className="btn-primary whitespace-nowrap">
+              Practice flashcards
+            </Link>
+          )}
         </div>
 
         {words.length > 0 && (
@@ -232,7 +234,16 @@ const VocabularyPage = () => {
           </>
         )}
 
-        {words.length > 0 ? (
+        {!user ? (
+          <EmptyState
+            icon={Sprout}
+            iconColorClass="text-secondary"
+            iconBgClass="bg-secondary/15"
+            title="Your garden is waiting"
+            description="Log in or register to plant words here and exercise them with flashcards."
+            action={{ label: 'Log in / Register', to: '/login' }}
+          />
+        ) : words.length > 0 ? (
           filteredWords.length > 0 ? (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 card-gap">

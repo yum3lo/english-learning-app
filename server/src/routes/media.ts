@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { body, query, validationResult } from 'express-validator';
 import Media from '../models/Media';
-import { authenticate, AuthenticatedRequest } from '../middleware/auth';
+import { authenticate, optionalAuthenticate, AuthenticatedRequest } from '../middleware/auth';
 import youtubeService from '../api/youtubeAPI';
 import { CATEGORIES, CEFRLevel } from '../constants/categories';
 import { classifyTextWithOpenAI } from '../services/cefrClassificationService';
@@ -39,10 +39,11 @@ const mapMediaForClient = (mediaDoc: any, completedIds?: Set<string>): any => {
 };
 
 // @route   GET /api/media/recommendations
-// @desc    Get personalized media recommendations
-// @access  Private
+// @desc    Get media recommendations - personalized by CEFR level/interests when logged in,
+//          otherwise an unfiltered newest-first browse so guests can preview real content
+// @access  Public (personalizes when authenticated)
 router.get('/recommendations',
-  authenticate,
+  optionalAuthenticate,
   [
     query('type').optional().isIn(['article', 'video']).withMessage('Type must be article or video'),
     query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
@@ -61,22 +62,11 @@ router.get('/recommendations',
       }
 
       const user = req.user;
-      if (!user) {
-        res.status(401).json({
-          success: false,
-          message: 'User not found'
-        });
-        return;
-      }
-
       const type = req.query.type as string | undefined;
       const limit = parseInt(req.query.limit as string) || 20;
       const page = parseInt(req.query.page as string) || 1;
 
-      const completedIds = new Set(user.completedMedia.map(m => m.mediaId));
-
       const query: any = {
-        cefrLevel: user.cefrLevel,
         isActive: { $ne: false }
       };
 
@@ -84,9 +74,14 @@ router.get('/recommendations',
         query.type = type;
       }
 
-      if (user.fieldsOfInterest && user.fieldsOfInterest.length > 0) {
-        query.categories = { $in: user.fieldsOfInterest };
+      if (user) {
+        query.cefrLevel = user.cefrLevel;
+        if (user.fieldsOfInterest && user.fieldsOfInterest.length > 0) {
+          query.categories = { $in: user.fieldsOfInterest };
+        }
       }
+
+      const completedIds = user ? new Set(user.completedMedia.map(m => m.mediaId)) : undefined;
 
       const total = await Media.countDocuments(query);
       const recommendations = await Media.find(query)
@@ -300,9 +295,9 @@ router.get('/feed',
 
 // @route   GET /api/media/:id
 // @desc    Get detailed media content by ID
-// @access  Private
+// @access  Public
 router.get('/:id',
-  authenticate,
+  optionalAuthenticate,
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const media = await Media.findById(req.params.id)

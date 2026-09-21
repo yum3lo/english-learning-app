@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Headphones, RefreshCcw } from 'lucide-react';
+import { Headphones, Loader2, RefreshCcw } from 'lucide-react';
 import MediaGrid from '@/components/MediaGrid';
-import { type MediaItem } from '@/components/MediaCard';
 import { useToast } from '@/hooks/use-toast';
 import FilterSearch from '@/components/FilterSearch';
 import PageHeader from '@/components/PageHeader';
@@ -12,63 +11,56 @@ import MediaLayout from '@/layouts/MediaLayout';
 import { Button } from '@/components/ui/button';
 import { mediaAPI } from '@/services/api';
 import { categorizeDuration } from '@/constants/categories';
+import { useInfiniteMedia } from '@/hooks/useInfiniteMedia';
 
 const ListeningPage = () => {
   const { user } = useAuth();
-  const [all, setAll] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDuration, setSelectedDuration] = useState<string>('all');
+  const [isFetchingNew, setIsFetchingNew] = useState(false);
 
   const { toast } = useToast();
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const triedYoutubeFallback = useRef(false);
 
+  const { items: all, setItems: setAll, loading, isFetchingMore, hasMore, sentinelRef } = useInfiniteMedia({
+    type: 'video',
+    enabled: true,
+  });
+
+  // first time a logged-in user has no stored videos at all, try fetching some from YouTube
+  // so the page isn't empty on their very first visit - only ever runs once per page load.
+  // Skipped for guests: /media/youtube/fetch requires auth, so this would just 401.
   useEffect(() => {
-    const fetchVideos = async (tryYoutubeIfEmpty = true) => {
-      setLoading(true);
+    if (!user || loading || all.length > 0 || triedYoutubeFallback.current) return;
+    triedYoutubeFallback.current = true;
+
+    const fetchFromYoutube = async () => {
       try {
-        const response = await mediaAPI.getRecommendations({
-          type: 'video',
-          limit: 20
-        });
-        if (response.success) {
-          const videos = response.recommendations;
-          if (videos.length === 0 && tryYoutubeIfEmpty) {
-            const youtubeResp = await mediaAPI.fetchYoutubeVideos({ limit: 10 });
-            if (youtubeResp?.success && youtubeResp.videos && youtubeResp.videos.length > 0) {
-              await fetchVideos(false);
-              toast({
-                title: `${youtubeResp.videos.length} new videos added`,
-                description: 'New videos fetched from YouTube.',
-              });
-              return;
-            } else {
-              toast({
-                title: 'No videos available',
-                description: 'No videos could be fetched.',
-              });
-            }
-          }
-          setAll(videos);
+        const youtubeResp = await mediaAPI.fetchYoutubeVideos({ limit: 10 });
+        if (youtubeResp?.success && youtubeResp.videos && youtubeResp.videos.length > 0) {
+          setAll(youtubeResp.videos);
+          toast({
+            title: `${youtubeResp.videos.length} new videos added`,
+            description: 'New videos fetched from YouTube.',
+          });
         } else {
-          throw new Error('Failed to fetch videos');
+          toast({
+            title: 'No videos available',
+            description: 'No videos could be fetched.',
+          });
         }
       } catch (error) {
         toast({
-          variant: "destructive",
-          title: "Error fetching videos",
-          description: "There was an error fetching videos. Please try again later.",
+          variant: 'destructive',
+          title: 'Error fetching videos',
+          description: 'There was an error fetching videos. Please try again later.',
         });
-      } finally {
-        setLoading(false);
       }
     };
 
-    if (user) {
-      fetchVideos();
-    }
-  }, [user, toast]);
+    fetchFromYoutube();
+  }, [user, loading, all.length, setAll, toast]);
 
   const filtered = all.filter(video => {
     const matchesSearch =
@@ -82,8 +74,8 @@ const ListeningPage = () => {
     return matchesSearch && matchesCategory && matchesDuration;
   });
 
-  const handleLoadMore = async () => {
-    setIsFetchingMore(true);
+  const handleFetchNew = async () => {
+    setIsFetchingNew(true);
     try {
       // requesting server to fetch new videos from YouTube and save only new ones
       const response = await mediaAPI.fetchYoutubeVideos({
@@ -92,11 +84,7 @@ const ListeningPage = () => {
       });
 
       if (response?.success && response.videos && response.videos.length > 0) {
-        const newVideos = response.videos as any[];
-        const combined = [...newVideos, ...all];
-
-        setAll(combined);
-
+        setAll(prev => [...response.videos, ...prev]);
         toast({
           title: `${response.videos.length} new videos added`,
           description: 'New videos fetched from YouTube.',
@@ -114,7 +102,7 @@ const ListeningPage = () => {
         description: 'There was a problem fetching new videos. Try again later.'
       });
     } finally {
-      setIsFetchingMore(false);
+      setIsFetchingNew(false);
     }
   };
 
@@ -144,19 +132,38 @@ const ListeningPage = () => {
               filteredCount={filtered.length}
               mediaType="videos"
             />
-            <Button
-              onClick={handleLoadMore}
-              disabled={isFetchingMore}
-              aria-label={isFetchingMore ? 'Loading more videos' : 'Load more videos'}
-              variant="secondary"
-            >
-              <RefreshCcw className="w-4 h-4" />
-              <span className="hidden sm:inline">{isFetchingMore ? 'Loading...' : 'Load more'}</span>
-            </Button>
+            {user && (
+              <Button
+                onClick={handleFetchNew}
+                disabled={isFetchingNew}
+                aria-label={isFetchingNew ? 'Fetching new videos' : 'Fetch new videos from YouTube'}
+                variant="secondary"
+              >
+                <RefreshCcw className="w-4 h-4" />
+                <span className="hidden sm:inline">{isFetchingNew ? 'Fetching...' : 'Fetch new'}</span>
+              </Button>
+            )}
           </div>
 
           <div className="mb-8">
             <MediaGrid items={filtered} />
+
+            {/* scrolling this into view fetches the next page of already-stored videos */}
+            <div ref={sentinelRef} />
+
+            {isFetchingMore && (
+              <div className="flex justify-center py-6">
+                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+
+            {!hasMore && all.length > 0 && (
+              <p className="text-center text-sm text-muted-foreground py-6">
+                {user
+                  ? 'You\'ve reached the end. Use "Fetch new" to check YouTube for more.'
+                  : "You've reached the end."}
+              </p>
+            )}
           </div>
 
           {filtered.length === 0 && (

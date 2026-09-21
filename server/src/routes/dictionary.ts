@@ -1,5 +1,6 @@
 import express from 'express';
 import axios from 'axios';
+import rateLimit from 'express-rate-limit';
 import { VocabularyWord, ISense } from '../models/Vocabulary';
 import { disambiguateSense } from '../services/senseDisambiguationService';
 import { getCachedDisambiguation, setCachedDisambiguation } from '../utils/disambiguationCache';
@@ -126,8 +127,16 @@ async function fetchDictionaryEntry(word: string): Promise<LookupResult> {
   }
 }
 
+// this route is reachable by guests (no per-user budget), and a lookup can trigger a paid
+// OpenAI disambiguation call, so it gets a tighter cap than the app-wide limiter in server.ts
+const dictionaryLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: 'Too many dictionary lookups from this IP, please try again later.'
+});
+
 // GET /api/dictionary/:word?sentence=...
-router.get('/:word', async (req, res) => {
+router.get('/:word', dictionaryLimiter, async (req, res) => {
   try {
     const raw = (req.params.word || '').trim();
     if (!raw) {

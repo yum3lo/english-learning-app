@@ -46,3 +46,29 @@ export const authenticate = async (
     res.status(500).json({ message: 'Server error during authentication' });
   }
 };
+
+// Attaches req.user when a valid token is present, but never rejects the request - for routes
+// guests can access (browsing media) that personalize when a user happens to be logged in.
+export const optionalAuthenticate = async (
+  req: AuthenticatedRequest,
+  _res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ') || !process.env.JWT_SECRET) {
+      next();
+      return;
+    }
+
+    const token = authHeader.substring(7);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as { userId: string };
+    const user = await User.findById(decoded.userId);
+    if (user) req.user = user;
+
+    next();
+  } catch (error) {
+    // an invalid/expired token on an optional route just means "treat as guest", not an error
+    next();
+  }
+};
