@@ -369,7 +369,7 @@ const FlashcardView = ({ vocabulary }: FlashcardViewProps) => {
       <img
         src={leaves}
         alt="Leaves Image"
-        className="mx-auto my-12 h-auto w-full section-px max-w-sm"
+        className="mx-auto my-4 h-auto w-full section-px max-w-[440px]"
       />
 
       <div className="text-center max-w-md mx-auto">

@@ -55,6 +55,10 @@ export default {
   				DEFAULT: 'hsl(var(--bloom))',
   				foreground: 'hsl(var(--bloom-foreground))'
   			},
+  			blue: {
+  				DEFAULT: 'hsl(var(--blue))',
+					foreground: 'hsl(var(--blue-foreground))'
+  			},
   			destructive: {
   				DEFAULT: 'hsl(var(--destructive))',
   				foreground: 'hsl(var(--destructive-foreground))'
