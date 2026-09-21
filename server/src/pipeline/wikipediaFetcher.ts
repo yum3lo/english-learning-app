@@ -104,7 +104,7 @@ async function fetchFeaturedArticle(): Promise<RawArticle | null> {
 
   try {
     const res = await getWithRetry<any>(
-      `https://api.wikimedia.org/core/v1/wikipedia/en/feed/featured/${dateStr}`,
+      `https://api.wikimedia.org/feed/v1/wikipedia/en/featured/${dateStr}`,
       { headers: { 'User-Agent': USER_AGENT } }
     );
     const fa = res.data?.tfa;
