@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { YoutubeTranscript } from 'youtube-transcript';
 import { decodeHtmlEntities } from '../utils/text';
+import { CATEGORIES } from '../constants/categories';
 
 interface YouTubeSearchItem {
   id: { videoId: string };
@@ -154,31 +155,31 @@ class YouTubeAPI {
     return relatedMap[category] || [];
   }
 
-  private getCategorySearchTerms(category: string): string {
-    const searchTerms: Record<string, string> = {
-      'General': 'interesting facts explained',
-      'Language': 'english learning lesson',
-      'Economy': 'economics explained',
-      'Environment': 'environment documentary',
-      'Politics': 'politics explained',
-      'Geography': 'geography documentary',
-      'Fauna': 'wildlife documentary',
-      'Flora': 'plants and nature documentary',
-      'History': 'history documentary',
-      'Cinema': 'film analysis video essay',
-      'Literature': 'book review literature',
-      'Sports': 'sports documentary',
-      'Technology': 'technology explained',
-      'Science': 'science documentary',
-      'Art': 'art documentary',
-      'Music': 'music documentary',
-      'Food': 'food documentary',
-      'Travel': 'travel documentary',
-      'Health': 'health explained',
-      'Culture': 'culture documentary'
+  private getCategorySearchTerms(category: string): string[] {
+    const searchTerms: Record<string, string[]> = {
+      'General': ['interesting facts explained', 'mind blowing facts video', 'did you know facts'],
+      'Language': ['english learning lesson', 'learn english vocabulary', 'english grammar explained', 'idioms and phrases explained', 'english pronunciation tips'],
+      'Economy': ['economics explained', 'capitalism explained', 'how the stock market works', 'socialism explained', 'inflation explained', 'cryptocurrency explained'],
+      'Environment': ['environment documentary', 'climate change explained', 'sustainability documentary', 'renewable energy explained', 'ocean pollution documentary'],
+      'Politics': ['politics explained', 'how government works', 'political history documentary', 'democracy explained', 'political ideologies explained'],
+      'Geography': ['geography documentary', 'country explained geography', 'geography facts video', 'geopolitics explained', 'natural landmarks documentary'],
+      'Fauna': ['wildlife documentary', 'animal behavior explained', 'endangered species documentary', 'marine life documentary'],
+      'Flora': ['plants and nature documentary', 'botany explained', 'forest ecosystem documentary'],
+      'History': ['history documentary', 'ancient history explained', 'historical events documentary', 'world war documentary', 'ancient civilizations documentary'],
+      'Cinema': ['film analysis video essay', 'movie history documentary', 'behind the scenes filmmaking', 'classic movies review'],
+      'Literature': ['book review literature', 'famous authors documentary', 'literary analysis video essay', 'poetry explained'],
+      'Sports': ['sports documentary', 'athlete biography documentary', 'sports history explained', 'olympic games documentary'],
+      'Technology': ['technology explained', 'how technology works', 'tech history documentary', 'artificial intelligence explained', 'internet history documentary'],
+      'Science': ['science documentary', 'space documentary', 'physics explained', 'chemistry explained', 'biology documentary', 'psychology explained'],
+      'Art': ['art documentary', 'famous artist biography', 'art history explained', 'street art documentary'],
+      'Music': ['music documentary', 'musician biography', 'behind the album story', 'music genre history documentary', 'music theory explained'],
+      'Food': ['food documentary', 'recipe cooking video', 'cuisine history documentary', 'baking recipe'],
+      'Travel': ['travel documentary', 'travel vlog destination guide', 'culture and travel documentary', 'hidden gems travel documentary'],
+      'Health': ['health explained', 'nutrition science explained', 'medical documentary', 'mental health explained', 'fitness science explained'],
+      'Culture': ['culture documentary', 'traditions around the world', 'cultural history explained', 'religion and culture documentary']
     };
 
-    return searchTerms[category] || 'english documentary';
+    return searchTerms[category] || ['english documentary'];
   }
 
   private parseDuration(iso: string): number | undefined {
@@ -194,12 +195,14 @@ class YouTubeAPI {
 
   async searchVideos(category?: string, maxResults: number = 10): Promise<ProcessedVideo[]> {
     try {
+      const terms = this.getCategorySearchTerms(category || 'General');
+      const searchTerm = terms[Math.floor(Math.random() * terms.length)];
       const searchResponse = await axios.get<YouTubeSearchResponse>(`${this.baseUrl}/search`, {
         params: {
           key: this.apiKey,
           part: 'snippet',
           type: 'video',
-          q: this.getCategorySearchTerms(category || 'General'),
+          q: searchTerm,
           maxResults,
           order: 'relevance',
           relevanceLanguage: 'en',
@@ -246,9 +249,19 @@ class YouTubeAPI {
     }
   }
 
-  // fetching a diverse mix of videos across the given interest categories (falling back to 'General')
+  // picks 5 distinct random categories (excluding the catch-all 'General') so a user/guest
+  // with no saved interests still gets properly-tagged variety instead of everything dumped
+  // into one vague 'General' search
+  private pickRandomCategories(count: number): string[] {
+    const pool = CATEGORIES.filter(c => c !== 'General');
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }
+
+  // fetching a diverse mix of videos across the given interest categories (falling back to a
+  // random spread of real categories when the user/guest has none saved)
   async getRecommendedVideos(interests: string[], limit: number = 10): Promise<ProcessedVideo[]> {
-    const categories = interests.length > 0 ? interests.slice(0, 5) : ['General'];
+    const categories = interests.length > 0 ? interests.slice(0, 5) : this.pickRandomCategories(5);
     const perCategory = Math.max(1, Math.ceil(limit / categories.length));
 
     const videoArrays = await Promise.all(
