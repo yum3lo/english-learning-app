@@ -18,7 +18,8 @@ export const CATEGORIES = [
   'Food',
   'Travel',
   'Health',
-  'Culture'
+  'Culture',
+  'Life Stories'
 ] as const;
 
 export const CEFR_LEVELS = ['UNCLASSIFIED', 'B1', 'B2', 'C1', 'C2'] as const;

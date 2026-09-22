@@ -1,18 +1,9 @@
 import Media from '../models/Media';
-import { CATEGORIES } from '../constants/categories';
 import { classifyTextWithOpenAI } from '../services/cefrClassificationService';
 import { countWords, estimateReadingMinutes, stripHtml } from '../utils/text';
 import { RawArticle } from './types';
 
 const MIN_WORD_COUNT = 200; // roughly the old 1200-plain-text-character floor used for Guardian articles
-
-const CATEGORY_SET = new Set<string>(CATEGORIES);
-
-function resolveCategories(article: RawArticle): string[] {
-  const candidates = article.tags?.length ? article.tags : (article.category ? [article.category] : []);
-  const valid = candidates.filter(c => CATEGORY_SET.has(c));
-  return valid.length ? valid : ['General'];
-}
 
 export interface IngestionSummary {
   fetched: number;
@@ -51,10 +42,12 @@ export async function processAndStore(articles: RawArticle[]): Promise<Ingestion
 
     let cefrLevel;
     let cefrReasoning = '';
+    let category = 'General';
     try {
       const result = await classifyTextWithOpenAI(plainText);
       cefrLevel = result.level;
       cefrReasoning = result.rationale;
+      category = result.category;
     } catch (err) {
       console.error(`[pipeline] CEFR tagging failed for "${article.title}":`, err instanceof Error ? err.message : err);
       summary.skippedTaggingFailed++;
@@ -73,7 +66,7 @@ export async function processAndStore(articles: RawArticle[]): Promise<Ingestion
         content: { content: article.body },
         cefrLevel,
         cefrReasoning,
-        categories: resolveCategories(article),
+        categories: [category],
         tags: article.tags,
         wordCount,
         readingMinutes: estimateReadingMinutes(wordCount),
