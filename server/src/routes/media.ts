@@ -47,7 +47,9 @@ router.get('/recommendations',
   [
     query('type').optional().isIn(['article', 'video']).withMessage('Type must be article or video'),
     query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
-    query('page').optional().isInt({ min: 1 }).withMessage('Page must be at least 1')
+    query('page').optional().isInt({ min: 1 }).withMessage('Page must be at least 1'),
+    query('category').optional().isIn(CATEGORIES).withMessage('Invalid category'),
+    query('search').optional().isString().trim().isLength({ max: 200 }).withMessage('Search term is too long')
   ],
   async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -65,6 +67,8 @@ router.get('/recommendations',
       const type = req.query.type as string | undefined;
       const limit = parseInt(req.query.limit as string) || 20;
       const page = parseInt(req.query.page as string) || 1;
+      const category = req.query.category as string | undefined;
+      const search = req.query.search as string | undefined;
 
       const query: any = {
         isActive: { $ne: false }
@@ -76,9 +80,24 @@ router.get('/recommendations',
 
       if (user) {
         query.cefrLevel = user.cefrLevel;
-        if (user.fieldsOfInterest && user.fieldsOfInterest.length > 0) {
+        if (!category && user.fieldsOfInterest && user.fieldsOfInterest.length > 0) {
           query.categories = { $in: user.fieldsOfInterest };
         }
+      }
+
+      // an explicit category filter always searches the whole matching corpus, overriding
+      // the personalized interest narrowing above - a user filtering by a category they
+      // didn't pick as an interest still expects to see everything that matches it
+      if (category) {
+        query.categories = category;
+      }
+
+      if (search) {
+        const escaped = escapeRegExp(search);
+        query.$or = [
+          { title: { $regex: escaped, $options: 'i' } },
+          { description: { $regex: escaped, $options: 'i' } }
+        ];
       }
 
       const completedIds = user ? new Set(user.completedMedia.map(m => m.mediaId)) : undefined;
@@ -176,10 +195,14 @@ router.get('/youtube/fetch',
 
           // classifying before saving so the client never sees a stale UNCLASSIFIED card
           let cefrLevel: CEFRLevel = 'UNCLASSIFIED';
+          // fall back to the search-derived category (which category's search term found
+          // this video - see youtubeAPI.ts) only if content-based classification fails
+          let categories = video.categories;
           try {
             const textToClassify = transcript || video.description || video.title;
             const result = await classifyTextWithOpenAI(textToClassify);
             cefrLevel = result.level;
+            categories = [result.category];
           } catch (err) {
             console.error('Error classifying video:', err);
           }
@@ -194,7 +217,7 @@ router.get('/youtube/fetch',
             duration: video.duration,
             content: { videoUrl: video.url, transcript, transcriptSegments },
             cefrLevel,
-            categories: video.categories
+            categories
           });
 
           return mapMediaForClient(doc.toObject());

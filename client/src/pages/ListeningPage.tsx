@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { mediaAPI } from '@/services/api';
 import { categorizeDuration } from '@/constants/categories';
 import { useInfiniteMedia } from '@/hooks/useInfiniteMedia';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 const ListeningPage = () => {
   const { user } = useAuth();
@@ -19,6 +20,7 @@ const ListeningPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDuration, setSelectedDuration] = useState<string>('all');
   const [isFetchingNew, setIsFetchingNew] = useState(false);
+  const debouncedSearch = useDebouncedValue(searchTerm.trim());
 
   const { toast } = useToast();
   const triedYoutubeFallback = useRef(false);
@@ -26,13 +28,22 @@ const ListeningPage = () => {
   const { items: all, setItems: setAll, loading, isFetchingMore, hasMore, sentinelRef } = useInfiniteMedia({
     type: 'video',
     enabled: true,
+    category: selectedCategory === 'all' ? undefined : selectedCategory,
+    search: debouncedSearch || undefined,
   });
 
-  // first time a logged-in user has no stored videos at all, try fetching some from YouTube
-  // so the page isn't empty on their very first visit - only ever runs once per page load.
+  // only the very first load blocks the whole page - a filter change just refetches the
+  // grid in place, since the search/category matching now happens server-side
+  const hasLoadedOnceRef = useRef(false);
+  useEffect(() => { if (!loading) hasLoadedOnceRef.current = true; }, [loading]);
+
+  // first time a logged-in user has no stored videos at all (with no filter active - an empty
+  // *filtered* result doesn't mean the library is empty), try fetching some from YouTube so
+  // the page isn't empty on their very first visit - only ever runs once per page load.
   // Skipped for guests: /media/youtube/fetch requires auth, so this would just 401.
   useEffect(() => {
     if (!user || loading || all.length > 0 || triedYoutubeFallback.current) return;
+    if (selectedCategory !== 'all' || debouncedSearch) return;
     triedYoutubeFallback.current = true;
 
     const fetchFromYoutube = async () => {
@@ -60,19 +71,13 @@ const ListeningPage = () => {
     };
 
     fetchFromYoutube();
-  }, [user, loading, all.length, setAll, toast]);
+  }, [user, loading, all.length, selectedCategory, debouncedSearch, setAll, toast]);
 
-  const filtered = all.filter(video => {
-    const matchesSearch =
-      !searchTerm ||
-      video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      video.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || video.categories.includes(selectedCategory);
-    const matchesDuration = selectedDuration === 'all' ||
-      (video.duration !== undefined && categorizeDuration(video.duration) === selectedDuration);
-
-    return matchesSearch && matchesCategory && matchesDuration;
-  });
+  // duration isn't a server-side filter (see useInfiniteMedia) - narrowed client-side on
+  // top of the already category/search-filtered, server-fetched list
+  const filtered = selectedDuration === 'all'
+    ? all
+    : all.filter(video => video.duration !== undefined && categorizeDuration(video.duration) === selectedDuration);
 
   const handleFetchNew = async () => {
     setIsFetchingNew(true);
@@ -106,7 +111,7 @@ const ListeningPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading && !hasLoadedOnceRef.current) {
     return <LoadingSpinner message="Loading videos..." />;
   }
 
@@ -145,32 +150,36 @@ const ListeningPage = () => {
             )}
           </div>
 
-          <div className="mb-8">
-            <MediaGrid items={filtered} />
-
-            {/* scrolling this into view fetches the next page of already-stored videos */}
-            <div ref={sentinelRef} />
-
-            {isFetchingMore && (
-              <div className="flex justify-center py-6">
-                <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-              </div>
-            )}
-
-            {!hasMore && all.length > 0 && (
-              <p className="text-center text-sm text-muted-foreground py-6">
-                {user
-                  ? 'You\'ve reached the end. Use "Fetch new" to check YouTube for more.'
-                  : "You've reached the end."}
-              </p>
-            )}
-          </div>
-
-          {filtered.length === 0 && (
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : filtered.length === 0 ? (
             <EmptyState
               title="No videos found"
               description="Try adjusting your search criteria or filters to find more videos that match your interests."
             />
+          ) : (
+            <div className="mb-8">
+              <MediaGrid items={filtered} />
+
+              {/* scrolling this into view fetches the next page of already-stored videos */}
+              <div ref={sentinelRef} />
+
+              {isFetchingMore && (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
+
+              {!hasMore && (
+                <p className="text-center text-sm text-muted-foreground py-6">
+                  {user
+                    ? 'You\'ve reached the end. Use "Fetch new" to check YouTube for more.'
+                    : "You've reached the end."}
+                </p>
+              )}
+            </div>
           )}
         </>
       }

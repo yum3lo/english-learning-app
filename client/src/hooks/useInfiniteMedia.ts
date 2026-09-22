@@ -7,11 +7,14 @@ interface UseInfiniteMediaOptions {
   type: 'article' | 'video';
   enabled: boolean;
   pageSize?: number;
+  category?: string;
+  search?: string;
 }
 
 // shared pagination + scroll-to-load-more mechanics for the Reading/Listening pages - fetches
-// page 1 up front, then fetches the next page whenever the sentinel div scrolls into view
-export function useInfiniteMedia({ type, enabled, pageSize = 20 }: UseInfiniteMediaOptions) {
+// page 1 up front, then fetches the next page whenever the sentinel div scrolls into view.
+// Refetches from page 1 whenever category/search change.
+export function useInfiniteMedia({ type, enabled, pageSize = 20, category, search }: UseInfiniteMediaOptions) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -28,7 +31,7 @@ export function useInfiniteMedia({ type, enabled, pageSize = 20 }: UseInfiniteMe
     const fetchInitial = async () => {
       setLoading(true);
       try {
-        const response = await mediaAPI.getRecommendations({ type, limit: pageSize, page: 1 });
+        const response = await mediaAPI.getRecommendations({ type, limit: pageSize, page: 1, category, search });
         if (cancelled) return;
         if (response.success) {
           setItems(response.recommendations);
@@ -52,7 +55,7 @@ export function useInfiniteMedia({ type, enabled, pageSize = 20 }: UseInfiniteMe
 
     fetchInitial();
     return () => { cancelled = true; };
-  }, [enabled, type, pageSize, toast]);
+  }, [enabled, type, pageSize, category, search, toast]);
 
   const loadMore = useCallback(async () => {
     if (fetchingRef.current || !hasMore) return;
@@ -60,7 +63,7 @@ export function useInfiniteMedia({ type, enabled, pageSize = 20 }: UseInfiniteMe
     setIsFetchingMore(true);
     try {
       const nextPage = page + 1;
-      const response = await mediaAPI.getRecommendations({ type, limit: pageSize, page: nextPage });
+      const response = await mediaAPI.getRecommendations({ type, limit: pageSize, page: nextPage, category, search });
 
       if (response.success && response.recommendations.length > 0) {
         setItems(prev => [...prev, ...response.recommendations]);
@@ -79,7 +82,7 @@ export function useInfiniteMedia({ type, enabled, pageSize = 20 }: UseInfiniteMe
       fetchingRef.current = false;
       setIsFetchingMore(false);
     }
-  }, [page, hasMore, type, pageSize, toast]);
+  }, [page, hasMore, type, pageSize, category, search, toast]);
 
   // keep a ref to the latest loadMore so the observer (set up once the sentinel mounts) always
   // calls the version closed over the current page/hasMore, without needing to re-subscribe

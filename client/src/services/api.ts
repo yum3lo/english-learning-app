@@ -45,6 +45,8 @@ export const mediaAPI = {
     type?: 'article' | 'video';
     limit?: number;
     page?: number;
+    category?: string;
+    search?: string;
   }): Promise<{ success: boolean; count: number; recommendations: MediaItem[]; pagination: Pagination }> => {
     const response = await api.get('/media/recommendations', { params });
     return response.data;
