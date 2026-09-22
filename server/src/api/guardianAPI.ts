@@ -98,7 +98,14 @@ class GuardianAPI {
       'Cinema': 'film OR cinema OR movies',
       'Literature': 'books OR literature OR writing',
       'History': 'history OR heritage',
-      'Health': 'health OR medicine OR wellness'
+      'Health': 'health OR medicine OR wellness',
+      'Flora': 'plants OR botany OR gardening OR trees OR forest',
+      'Fauna': 'wildlife OR animals OR zoology OR species',
+      'Art': 'art OR artist OR exhibition OR gallery OR painting',
+      'Music': 'music OR musician OR album OR concert',
+      'Food': 'food OR recipe OR cooking OR cuisine OR restaurant',
+      'Travel': 'travel OR tourism OR destination OR holiday',
+      'Language': 'language OR linguistics OR vocabulary OR grammar'
     };
 
     return searchTerms[category] || category.toLowerCase();
